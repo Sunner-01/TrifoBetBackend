@@ -90,6 +90,7 @@ export class BlackjackService {
         const { data: current } = await this.supabase.from('usuario').select('saldo').eq('id', userId).single();
         const newBalance = (current?.saldo || 0) + profit;
         await this.supabase.from('usuario').update({ saldo: newBalance }).eq('id', userId);
+        
         await this.supabase.from('game_logs').insert({
             user_id: userId,
             game_type: 'blackjack',
@@ -98,6 +99,34 @@ export class BlackjackService {
             result,
             created_at: new Date().toISOString(),
         });
+
+        const fechaIso = new Date().toISOString();
+
+        if (bet > 0) {
+            await this.supabase.from('transaccion').insert({
+                usuario_id: userId,
+                tipo: 'apuesta',
+                monto: bet,
+                estado: 'completado',
+                descripcion: `Apuesta en Blackjack`,
+                fecha_creacion: fechaIso,
+                fecha_procesado: fechaIso,
+            });
+        }
+
+        const totalWin = bet + profit;
+        if (totalWin > 0) {
+            await this.supabase.from('transaccion').insert({
+                usuario_id: userId,
+                tipo: 'ganancia',
+                monto: totalWin,
+                estado: 'completado',
+                descripcion: `Ganancia en Blackjack`,
+                fecha_creacion: fechaIso,
+                fecha_procesado: fechaIso,
+            });
+        }
+
         return newBalance;
     }
 

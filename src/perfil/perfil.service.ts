@@ -44,6 +44,7 @@ export class PerfilService {
   }
 
   async getProfile(userId: number) {
+    // 1. Obtener datos del usuario
     const { data, error } = await this.supabase
       .from('usuario')
       .select('*')
@@ -53,6 +54,19 @@ export class PerfilService {
     if (error || !data) {
       this.logger.error(`Error obteniendo perfil de usuario ${userId}: ${error?.message}`);
       throw new NotFoundException('Usuario no encontrado');
+    }
+
+    // 2. Calcular saldo retenido
+    const { data: retirosData, error: retirosError } = await this.supabase
+      .from('transaccion')
+      .select('monto')
+      .eq('usuario_id', userId)
+      .eq('tipo', 'retiro')
+      .eq('estado', 'pendiente');
+
+    let saldoRetenido = 0;
+    if (!retirosError && retirosData) {
+      saldoRetenido = retirosData.reduce((acc, curr) => acc + Number(curr.monto), 0);
     }
 
     return {
@@ -67,6 +81,7 @@ export class PerfilService {
       pais_codigo: data.pais_codigo || 'BO',
       fecha_nacimiento: data.fecha_nacimiento || null,
       saldo: Number(data.saldo),
+      saldo_retenido: saldoRetenido,
       foto_perfil_url: data.foto_perfil_url || null,
       verificado: data.verificado,
       created_at: data.created_at,

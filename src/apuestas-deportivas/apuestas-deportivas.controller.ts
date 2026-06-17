@@ -50,6 +50,17 @@ export class ApuestasDeportivasController {
     }
 
     /**
+     * Cerrar una apuesta anticipadamente (Cashout)
+     * POST /apuestas-deportivas/:id/cashout
+     */
+    @Post(':id/cashout')
+    @HttpCode(200)
+    async cerrarApuesta(@Request() req, @Param('id', ParseIntPipe) id: number) {
+        const usuarioId = req.user.userId;
+        return this.apuestasDeportivasService.cerrarApuesta(id, usuarioId);
+    }
+
+    /**
      * Obtener detalle de una apuesta específica
      * GET /apuestas-deportivas/:id
      */

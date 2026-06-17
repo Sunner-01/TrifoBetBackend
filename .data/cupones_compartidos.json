@@ -1,0 +1,250 @@
+{
+  "149615": {
+    "fecha": "2026-06-11T11:39:00.194Z",
+    "selecciones": [
+      {
+        "id": 1489369,
+        "league": "World Cup",
+        "match": "Mexico vs South Africa",
+        "type": "over",
+        "odds": "1.70",
+        "selection": "Más de 2.5",
+        "marketType": "overunder"
+      },
+      {
+        "id": 1538999,
+        "league": "World Cup",
+        "match": "South Korea vs Czech Republic",
+        "type": "home",
+        "odds": "1.68",
+        "selection": "South Korea",
+        "marketType": "1x2"
+      },
+      {
+        "id": 1538999,
+        "league": "World Cup",
+        "match": "South Korea vs Czech Republic",
+        "type": "over",
+        "odds": "1.91",
+        "selection": "Más de 2.5",
+        "marketType": "overunder"
+      }
+    ]
+  },
+  "433246": {
+    "fecha": "2026-06-11T11:57:50.038Z",
+    "selecciones": [
+      {
+        "id": 1538999,
+        "league": "World Cup",
+        "match": "South Korea vs Czech Republic",
+        "type": "over",
+        "odds": "1.91",
+        "selection": "Más de 2.5",
+        "marketType": "overunder"
+      }
+    ]
+  },
+  "3887B9": {
+    "fecha": "2026-06-11T03:49:25.217Z",
+    "selecciones": [
+      {
+        "id": 1489369,
+        "league": "World Cup",
+        "match": "Mexico vs South Africa",
+        "type": "draw",
+        "odds": "4.66",
+        "selection": "Empate",
+        "marketType": "1x2"
+      },
+      {
+        "id": 1489369,
+        "league": "World Cup",
+        "match": "Mexico vs South Africa",
+        "type": "over",
+        "odds": "2.06",
+        "selection": "Más de 2.5",
+        "marketType": "overunder"
+      },
+      {
+        "id": 1538999,
+        "league": "World Cup",
+        "match": "South Korea vs Czech Republic",
+        "type": "over",
+        "odds": "1.91",
+        "selection": "Más de 2.5",
+        "marketType": "overunder"
+      }
+    ]
+  },
+  "025AC3": {
+    "fecha": "2026-06-11T04:23:22.707Z",
+    "selecciones": [
+      {
+        "id": 1539000,
+        "league": "World Cup",
+        "match": "Canada vs Bosnia & Herzegovina",
+        "type": "home",
+        "odds": "1.98",
+        "selection": "Canada",
+        "marketType": "1x2"
+      }
+    ]
+  },
+  "6C707B": {
+    "fecha": "2026-06-11T04:41:46.635Z",
+    "selecciones": [
+      {
+        "id": 1538999,
+        "league": "World Cup",
+        "match": "South Korea vs Czech Republic",
+        "type": "1",
+        "odds": "1.68",
+        "selection": "1 - South Korea",
+        "marketType": "resultado"
+      },
+      {
+        "id": 1538999,
+        "league": "World Cup",
+        "match": "South Korea vs Czech Republic",
+        "type": "12",
+        "odds": "1.21",
+        "selection": "12",
+        "marketType": "doble"
+      }
+    ]
+  },
+  "BB4260": {
+    "fecha": "2026-06-11T11:36:08.579Z",
+    "selecciones": [
+      {
+        "id": 1489369,
+        "league": "World Cup",
+        "match": "Mexico vs South Africa",
+        "type": "over",
+        "odds": "1.70",
+        "selection": "Más de 2.5",
+        "marketType": "overunder"
+      },
+      {
+        "id": 1538999,
+        "league": "World Cup",
+        "match": "South Korea vs Czech Republic",
+        "type": "home",
+        "odds": "1.68",
+        "selection": "South Korea",
+        "marketType": "1x2"
+      },
+      {
+        "id": 1538999,
+        "league": "World Cup",
+        "match": "South Korea vs Czech Republic",
+        "type": "over",
+        "odds": "1.91",
+        "selection": "Más de 2.5",
+        "marketType": "overunder"
+      }
+    ]
+  },
+  "DEBC27": {
+    "fecha": "2026-06-11T12:49:15.351Z",
+    "selecciones": [
+      {
+        "id": 1538394,
+        "match": "Nacional Potosí vs Real Oruro",
+        "type": "local",
+        "odds": "2.54",
+        "league": "Primera División",
+        "selection": "local",
+        "marketType": "1x2"
+      },
+      {
+        "id": 1536091,
+        "match": "Nam Dinh vs Ho Chi Minh",
+        "type": "empate",
+        "odds": "3.61",
+        "league": "Cup",
+        "selection": "empate",
+        "marketType": "1x2"
+      },
+      {
+        "id": 1538394,
+        "match": "Nacional Potosí vs Real Oruro",
+        "type": "over",
+        "odds": "2.13",
+        "league": "Primera División",
+        "selection": "over",
+        "marketType": "overunder"
+      }
+    ]
+  },
+  "D6768D": {
+    "fecha": "2026-06-11T14:41:56.571Z",
+    "selecciones": [
+      {
+        "id": 1489369,
+        "match": "Mexico vs South Africa",
+        "type": "local",
+        "odds": "2.00",
+        "league": "World Cup",
+        "selection": "local",
+        "marketType": "1x2"
+      },
+      {
+        "id": 1538999,
+        "match": "South Korea vs Czech Republic",
+        "type": "empate",
+        "odds": "4.32",
+        "league": "World Cup",
+        "selection": "empate",
+        "marketType": "1x2"
+      }
+    ]
+  },
+  "AA2B11": {
+    "fecha": "2026-06-11T17:41:02.571Z",
+    "selecciones": [
+      {
+        "id": 1489369,
+        "league": "World Cup",
+        "match": "Mexico vs South Africa",
+        "type": "home",
+        "odds": "1.74",
+        "selection": "Mexico",
+        "marketType": "1x2"
+      },
+      {
+        "id": 1489369,
+        "league": "World Cup",
+        "match": "Mexico vs South Africa",
+        "type": "under",
+        "odds": "1.80",
+        "selection": "Menos de 2.5",
+        "marketType": "overunder"
+      }
+    ]
+  },
+  "8B1B63": {
+    "fecha": "2026-06-11T22:55:07.720Z",
+    "selecciones": [
+      {
+        "id": 1538389,
+        "league": "Primera División",
+        "match": "San Antonio Bulo Bulo vs ABB",
+        "type": "home",
+        "odds": "1.60",
+        "selection": "San Antonio Bulo Bulo",
+        "marketType": "1x2"
+      },
+      {
+        "id": 1539000,
+        "league": "World Cup",
+        "match": "Canada vs Bosnia & Herzegovina",
+        "type": "under",
+        "odds": "1.86",
+        "selection": "Menos de 2.5",
+        "marketType": "overunder"
+      }
+    ]
+  }
+}

@@ -77,6 +77,17 @@ export class ChickenRoadService {
             .update({ saldo: balance - amount })
             .eq('id', userId);
 
+        const fechaIso = new Date().toISOString();
+        await this.supabase.from('transaccion').insert({
+            usuario_id: userId,
+            tipo: 'apuesta',
+            monto: amount,
+            estado: 'completado',
+            descripcion: 'Apuesta en Chicken Road',
+            fecha_creacion: fechaIso,
+            fecha_procesado: fechaIso,
+        });
+
         return {
             success: true,
             newBalance: balance - amount,
@@ -147,6 +158,19 @@ export class ChickenRoadService {
             result,
             created_at: new Date().toISOString(),
         });
+
+        if (winnings > 0) {
+            const fechaIso = new Date().toISOString();
+            await this.supabase.from('transaccion').insert({
+                usuario_id: userId,
+                tipo: 'ganancia',
+                monto: winnings,
+                estado: 'completado',
+                descripcion: 'Ganancia en Chicken Road',
+                fecha_creacion: fechaIso,
+                fecha_procesado: fechaIso,
+            });
+        }
 
         return {
             newBalance,

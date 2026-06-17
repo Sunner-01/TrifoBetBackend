@@ -209,6 +209,52 @@ export class TransaccionesService {
         return data || [];
     }
 
+    // ==================== HISTORIAL ADMINISTRATIVO ====================
+    async obtenerHistorialAdmin(tipo?: string, estado?: string, searchTerm?: string, limit = 50, offset = 0) {
+        let query = this.supabase
+            .from('transaccion')
+            .select(`
+                *,
+                usuario:usuario_id(nombre, apellido1, correo, nombre_usuario),
+                entidad_financiera:entidad_financiera_id(nombre, tipo, codigo),
+                metodo_pago:metodo_pago_id(nombre, tipo),
+                cuenta_retiro:cuenta_retiro_id(*)
+            `, { count: 'exact' })
+            .order('fecha_creacion', { ascending: false })
+            .range(offset, offset + limit - 1);
+
+        if (tipo && tipo !== 'todos') {
+            query = query.eq('tipo', tipo);
+        }
+
+        if (estado && estado !== 'todos') {
+            query = query.eq('estado', estado);
+        }
+
+        // Si hay busqueda (searchTerm), no lo aplicamos en count directo por limitaciones de supabase sin RPC,
+        // pero podemos filtrar por ID si es numérico
+        if (searchTerm) {
+            const isNumber = !isNaN(Number(searchTerm));
+            if (isNumber) {
+                query = query.eq('id', Number(searchTerm));
+            }
+        }
+
+        const { data, error, count } = await query;
+
+        if (error) {
+            this.logger.error(`Error al obtener historial admin: ${error.message}`);
+            throw new BadRequestException('Error al obtener historial admin');
+        }
+
+        return {
+            transacciones: data?.map(t => this.formatearTransaccion(t)) || [],
+            total: count || 0,
+            pagina: Math.floor(offset / limit) + 1,
+            porPagina: limit,
+        };
+    }
+
     // ==================== OBTENER ENTIDADES FINANCIERAS ====================
     async obtenerEntidadesFinancieras(paisCodigo?: string) {
         let query = this.supabase
@@ -301,9 +347,14 @@ export class TransaccionesService {
             numeroOperacion: transaccion.numero_operacion,
             datosPago: transaccion.datos_pago,
             fechaCreacion: transaccion.fecha_creacion,
+            fecha_creacion: transaccion.fecha_creacion, // para retrocompatibilidad
             fechaProcesado: transaccion.fecha_procesado,
+            fecha_procesado: transaccion.fecha_procesado, // para retrocompatibilidad
             entidadFinanciera: transaccion.entidad_financiera,
             metodoPago: transaccion.metodo_pago,
+            usuario: transaccion.usuario, // Agregar el usuario
+            cuenta_retiro: transaccion.cuenta_retiro, // Agregar la cuenta de retiro si existe
+            descripcion: transaccion.descripcion // Agregar descripcion
         };
     }
 }

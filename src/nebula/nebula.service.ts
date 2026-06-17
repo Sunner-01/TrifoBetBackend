@@ -83,11 +83,14 @@ export class NebulaService {
             timeoutId: null
         });
 
+        const fechaIso = new Date().toISOString();
         await this.supabase.from('transaccion').insert({
             tipo: 'apuesta',
             monto: amount,
             usuario_id: userId,
-            fecha: new Date(),
+            estado: 'completado',
+            fecha_creacion: fechaIso,
+            fecha_procesado: fechaIso,
             descripcion: 'Apuesta Nebula Crash',
         });
 
@@ -112,11 +115,14 @@ export class NebulaService {
 
         this.activeSessions.delete(userId);
 
+        const fechaIso = new Date().toISOString();
         await this.supabase.from('transaccion').insert({
             tipo: 'reembolso',
             monto: session.bet,
             usuario_id: userId,
-            fecha: new Date(),
+            estado: 'completado',
+            fecha_creacion: fechaIso,
+            fecha_procesado: fechaIso,
             descripcion: 'Cancelación Apuesta Nebula',
         });
 
@@ -203,11 +209,14 @@ export class NebulaService {
             .update({ saldo: newBalance })
             .eq('id', userId);
 
+        const fechaIso = new Date().toISOString();
         const logTransactionPromise = this.supabase.from('transaccion').insert({
             tipo: 'ganancia',
             monto: winnings,
             usuario_id: userId,
-            fecha: new Date(),
+            estado: 'completado',
+            fecha_creacion: fechaIso,
+            fecha_procesado: fechaIso,
             descripcion: `Ganancia Nebula (${multiplier.toFixed(2)}x)`,
         });
 

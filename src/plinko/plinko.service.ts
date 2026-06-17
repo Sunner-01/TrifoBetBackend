@@ -42,7 +42,9 @@ export class PlinkoService {
             tipo: 'apuesta',
             monto: betAmount,
             usuario_id: userId,
-            fecha: new Date(),
+            estado: 'completado',
+            fecha_creacion: new Date().toISOString(),
+            fecha_procesado: new Date().toISOString(),
             descripcion: 'Apuesta Plinko'
         });
 
@@ -75,7 +77,9 @@ export class PlinkoService {
                 tipo: 'ganancia',
                 monto: payout,
                 usuario_id: userId,
-                fecha: new Date(),
+                estado: 'completado',
+                fecha_creacion: new Date().toISOString(),
+                fecha_procesado: new Date().toISOString(),
                 descripcion: `Ganancia Plinko (${multiplier}x)`
             });
         }

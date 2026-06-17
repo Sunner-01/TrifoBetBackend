@@ -54,6 +54,7 @@ export class AuthService {
                 fecha_nacimiento: fechaNacimiento,
                 telefono,
                 pais_codigo: paisCodigo || 'BO',
+                foto_perfil_url: this.configService.get<string>('DEFAULT_PROFILE_PHOTO_URL'),
             })
             .select()
             .single();
@@ -122,6 +123,12 @@ export class AuthService {
         console.log('✅ Usuario encontrado:', user.nombre_usuario);
         console.log('Hash almacenado (primeros 20):', user.contrasena_hash?.substring(0, 20));
 
+        // Verificar si la cuenta está suspendida
+        if (user.habilitado === false) {
+            console.log('❌ Intento de login de usuario suspendido:', user.nombre_usuario);
+            throw new UnauthorizedException('Tu cuenta ha sido suspendida. Por favor, contacta a soporte.');
+        }
+
         // Verificar contraseña
         const isPasswordValid = await bcrypt.compare(contrasena, user.contrasena_hash);
 
@@ -155,6 +162,7 @@ export class AuthService {
                 pais_codigo: user.pais_codigo || user.pais || 'BO',
                 foto_perfil_url: user.foto_perfil_url || null,
                 verificado: user.verificado || false,
+                rol_id: user.rol_id || 2, // 2 es el rol por defecto (jugador)
                 fecha_registro: user.created_at || new Date().toISOString(),
             },
         };

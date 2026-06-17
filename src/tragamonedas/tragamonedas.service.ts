@@ -145,45 +145,53 @@ export class TragamonedasService {
 
         // 4. Update Balance with Winnings (if any)
         let finalBalance = balanceAfterBet;
+
+        // Logging to game_logs
+        const result = totalWin > 0 ? 'win' : 'lose';
+        const profit = totalWin - totalBet;
+
+        const logPromise = this.supabase.from('game_logs').insert({
+            user_id: userId,
+            game_type: 'tragamonedas',
+            bet: totalBet,
+            profit: profit,
+            result: result,
+            metadata: { grid, winLines, scatterCount },
+            created_at: new Date().toISOString(),
+        });
+
+        const fechaIso = new Date().toISOString();
+        const txBetPromise = this.supabase.from('transaccion').insert({
+            usuario_id: userId,
+            tipo: 'apuesta',
+            monto: totalBet,
+            estado: 'completado',
+            descripcion: 'Apuesta en Tragamonedas',
+            fecha_creacion: fechaIso,
+            fecha_procesado: fechaIso
+        });
+
+        let txWinPromise: any = null;
         if (totalWin > 0) {
             finalBalance += totalWin;
-
-            // Parallel update and log
             const updatePromise = this.supabase
                 .from('usuario')
                 .update({ saldo: finalBalance })
                 .eq('id', userId);
-
-            const logPromise = this.supabase.from('transaccion').insert({
-                tipo: 'ganancia', // Or 'apuesta' for the bet? We should log the bet too.
+            
+            txWinPromise = this.supabase.from('transaccion').insert({
+                usuario_id: userId,
+                tipo: 'ganancia',
                 monto: totalWin,
-                usuario_id: userId,
-                fecha: new Date(),
-                descripcion: `Ganancia Tragamonedas`,
+                estado: 'completado',
+                descripcion: 'Ganancia en Tragamonedas',
+                fecha_creacion: fechaIso,
+                fecha_procesado: fechaIso
             });
-
-            // We also need to log the BET. 
-            // Ideally: Log Bet (-5), Log Win (+10).
-            // Let's do it properly.
-
-            const logBetPromise = this.supabase.from('transaccion').insert({
-                tipo: 'apuesta',
-                monto: totalBet,
-                usuario_id: userId,
-                fecha: new Date(),
-                descripcion: `Apuesta Tragamonedas`,
-            });
-
-            await Promise.all([updatePromise, logPromise, logBetPromise]);
+            
+            await Promise.all([updatePromise, logPromise, txBetPromise, txWinPromise]);
         } else {
-            // Just log the bet
-            await this.supabase.from('transaccion').insert({
-                tipo: 'apuesta',
-                monto: totalBet,
-                usuario_id: userId,
-                fecha: new Date(),
-                descripcion: `Apuesta Tragamonedas`,
-            });
+            await Promise.all([logPromise, txBetPromise]);
         }
 
         return {

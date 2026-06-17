@@ -43,6 +43,25 @@ export class TransaccionesController {
         );
     }
 
+    // ==================== OBTENER HISTORIAL ADMIN ====================
+    @Get('admin/historial')
+    @UseGuards(AuthGuard('jwt')) 
+    async obtenerHistorialAdmin(
+        @Query('tipo') tipo?: string,
+        @Query('estado') estado?: string,
+        @Query('searchTerm') searchTerm?: string,
+        @Query('limit') limit?: string,
+        @Query('offset') offset?: string,
+    ) {
+        return this.transaccionesService.obtenerHistorialAdmin(
+            tipo,
+            estado,
+            searchTerm,
+            limit ? parseInt(limit) : 50,
+            offset ? parseInt(offset) : 0,
+        );
+    }
+
     // ==================== LISTAR MÉTODOS DE PAGO ====================
     @Get('metodos-pago')
     async obtenerMetodosPago() {

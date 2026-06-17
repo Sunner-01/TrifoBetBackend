@@ -23,18 +23,21 @@ export class PerfilController {
 
   @Get('me')
   getProfile(@CurrentUser() user: any) {
-    return this.perfilService.getProfile(user.userId);
+    const userId = user?.userId || user?.sub || user?.id;
+    if (!userId) throw new BadRequestException('Usuario no identificado en el token');
+    return this.perfilService.getProfile(userId);
   }
 
   @Patch('me')
   updateProfile(@CurrentUser() user: any, @Body() dto: UpdateProfileDto) {
-    return this.perfilService.updateProfile(user.userId, dto);
+    const userId = user?.userId || user?.sub || user?.id;
+    return this.perfilService.updateProfile(userId, dto);
   }
 
   @Patch('me/photo')
   @UseInterceptors(
     FileInterceptor('foto', {
-      limits: { fileSize: 5 * 1024 * 1024 },
+      limits: { fileSize: 2 * 1024 * 1024 }, // Límite de 2MB
       fileFilter: (req, file, cb) => {
         if (!file.originalname.match(/\.(jpg|jpeg|png|webp)$/i)) {
           return cb(new BadRequestException('Solo imágenes'), false);
@@ -45,11 +48,13 @@ export class PerfilController {
   )
   updatePhoto(@CurrentUser() user: any, @UploadedFile() file: Express.Multer.File) {
     if (!file) throw new BadRequestException('Falta la foto');
-    return this.perfilService.updateProfilePhoto(user.userId, file);
+    const userId = user?.userId || user?.sub || user?.id;
+    return this.perfilService.updateProfilePhoto(userId, file);
   }
 
   @Delete('me/photo')
   deletePhoto(@CurrentUser() user: any) {
-    return this.perfilService.deleteProfilePhoto(user.userId);
+    const userId = user?.userId || user?.sub || user?.id;
+    return this.perfilService.deleteProfilePhoto(userId);
   }
 }

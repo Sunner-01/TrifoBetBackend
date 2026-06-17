@@ -8,16 +8,32 @@ import {
     HistorialApuestasResponse,
     EstadisticasApuestasResponse,
 } from './dto/apuesta-response.dto';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class ApuestasDeportivasService {
     private supabase: SupabaseClient;
     private readonly logger = new Logger(ApuestasDeportivasService.name);
 
+    private readonly dataDir: string;
+    private readonly cuponesFile: string;
+
     constructor(private configService: ConfigService) {
         const supabaseUrl = this.configService.get<string>('SUPABASE_URL')!;
         const supabaseKey = this.configService.get<string>('SUPABASE_ANON_KEY')!;
         this.supabase = createClient(supabaseUrl, supabaseKey);
+
+        this.dataDir = path.join(process.cwd(), '.data');
+        this.cuponesFile = path.join(this.dataDir, 'cupones_compartidos.json');
+        
+        if (!fs.existsSync(this.dataDir)) {
+            fs.mkdirSync(this.dataDir, { recursive: true });
+        }
+        if (!fs.existsSync(this.cuponesFile)) {
+            fs.writeFileSync(this.cuponesFile, JSON.stringify({}), 'utf-8');
+        }
     }
 
     // ==================== CREAR APUESTA ====================
@@ -64,6 +80,17 @@ export class ApuestasDeportivasService {
             this.logger.error(`Error al actualizar saldo: ${updateSaldoError.message}`);
             throw new BadRequestException('Error al procesar el pago de la apuesta');
         }
+
+        // Registrar transacción de apuesta
+        await this.supabase.from('transaccion').insert({
+            usuario_id: usuarioId,
+            tipo: 'apuesta',
+            monto: dto.monto,
+            estado: 'completado',
+            descripcion: `Apuesta deportiva ${dto.tipo} (${dto.selecciones.length} selecciones)`,
+            fecha_creacion: new Date().toISOString(),
+            fecha_procesado: new Date().toISOString(),
+        });
 
         // 6. Crear la apuesta en la base de datos
         const { data: apuesta, error: apuestaError } = await this.supabase
@@ -130,9 +157,9 @@ export class ApuestasDeportivasService {
             } catch (error) {
                 this.logger.error(`Error en simulación de apuesta #${apuestaId}: ${error.message}`);
             }
-        }, 30000); // 30 segundos
+        }, 60000); // 60 segundos
 
-        this.logger.log(`⏱️ Simulación programada para apuesta #${apuestaId} (30 segundos)`);
+        this.logger.log(`⏱️ Simulación programada para apuesta #${apuestaId} (60 segundos)`);
     }
 
     // ==================== SIMULAR APUESTA ====================
@@ -210,7 +237,7 @@ export class ApuestasDeportivasService {
 
         // 6. Si ganó, acreditar las ganancias
         if (apuestaGanada) {
-            await this.acreditarGanancias(apuesta.usuario_id, apuesta.ganancia_potencial);
+            await this.acreditarGanancias(apuesta.usuario_id, apuesta.ganancia_potencial, 'ganancia', `Ganancia de apuesta deportiva #${apuestaId}`);
             this.logger.log(
                 `🎉 Apuesta #${apuestaId} GANADA! Usuario ${apuesta.usuario_id} ganó ${apuesta.ganancia_potencial} BOB`,
             );
@@ -220,7 +247,7 @@ export class ApuestasDeportivasService {
     }
 
     // ==================== ACREDITAR GANANCIAS ====================
-    private async acreditarGanancias(usuarioId: number, monto: number): Promise<void> {
+    private async acreditarGanancias(usuarioId: number, monto: number, tipo: string = 'ganancia', descripcion: string = 'Ganancia de apuesta'): Promise<void> {
         const { data: usuario, error: fetchError } = await this.supabase
             .from('usuario')
             .select('saldo')
@@ -243,6 +270,17 @@ export class ApuestasDeportivasService {
             this.logger.error(`Error al acreditar ganancias a usuario ${usuarioId}: ${updateError.message}`);
             return;
         }
+
+        // Registrar transacción de ganancia/cashout
+        await this.supabase.from('transaccion').insert({
+            usuario_id: usuarioId,
+            tipo: tipo,
+            monto: monto,
+            estado: 'completado',
+            descripcion: descripcion,
+            fecha_creacion: new Date().toISOString(),
+            fecha_procesado: new Date().toISOString(),
+        });
 
         this.logger.log(`💰 Acreditado ${monto} BOB a usuario ${usuarioId}`);
     }
@@ -287,6 +325,56 @@ export class ApuestasDeportivasService {
         }
 
         return this.formatearApuesta(apuesta, selecciones || []);
+    }
+
+    // ==================== CERRAR APUESTA (CASHOUT) ====================
+    async cerrarApuesta(apuestaId: number, usuarioId: number): Promise<any> {
+        this.logger.log(`💸 Usuario ${usuarioId} solicitando cashout para apuesta #${apuestaId}`);
+
+        // 1. Obtener la apuesta
+        const { data: apuesta, error: apuestaError } = await this.supabase
+            .from('apuesta')
+            .select('*')
+            .eq('id', apuestaId)
+            .eq('usuario_id', usuarioId)
+            .single();
+
+        if (apuestaError || !apuesta) {
+            throw new NotFoundException('Apuesta no encontrada');
+        }
+
+        if (apuesta.estado !== 'pendiente') {
+            throw new BadRequestException(`No se puede hacer cashout de una apuesta que ya está ${apuesta.estado}`);
+        }
+
+        // 2. Calcular monto de cashout (85% del monto original como penalidad por cerrar antes)
+        const montoCashout = parseFloat((apuesta.monto * 0.85).toFixed(2));
+
+        // 3. Actualizar estado de la apuesta
+        const { error: updateApuestaError } = await this.supabase
+            .from('apuesta')
+            .update({
+                estado: 'cashout',
+                monto_cashout: montoCashout,
+                fecha_cashout: new Date().toISOString(),
+                fecha_procesado: new Date().toISOString(),
+            })
+            .eq('id', apuestaId);
+
+        if (updateApuestaError) {
+            throw new BadRequestException('Error al procesar el cashout');
+        }
+
+        // 4. Acreditar el saldo (como reembolso/cashout)
+        await this.acreditarGanancias(usuarioId, montoCashout, 'reembolso', `Cashout de apuesta deportiva #${apuestaId}`);
+
+        this.logger.log(`✅ Cashout exitoso para apuesta #${apuestaId}. Se devolvió ${montoCashout} BOB`);
+        
+        return {
+            mensaje: 'Apuesta cerrada exitosamente',
+            montoDevuelto: montoCashout,
+            apuestaId: apuestaId
+        };
     }
 
     // ==================== OBTENER HISTORIAL ====================
@@ -398,5 +486,58 @@ export class ApuestasDeportivasService {
                 resultado: sel.resultado_bool,
             })),
         };
+    }
+
+    // ==================== COMPARTIR CUPON ====================
+    async compartirCupon(selecciones: any[]): Promise<{ codigo: string }> {
+        if (!selecciones || selecciones.length === 0) {
+            throw new BadRequestException('El cupón debe tener al menos una selección');
+        }
+
+        // Generar un código único de 6 caracteres alfanuméricos
+        const codigo = crypto.randomBytes(3).toString('hex').toUpperCase();
+
+        try {
+            const data = fs.readFileSync(this.cuponesFile, 'utf-8');
+            const cupones = JSON.parse(data);
+            
+            cupones[codigo] = {
+                fecha: new Date().toISOString(),
+                selecciones
+            };
+
+            fs.writeFileSync(this.cuponesFile, JSON.stringify(cupones, null, 2), 'utf-8');
+            this.logger.log(`🔗 Cupón compartido generado: ${codigo}`);
+            return { codigo };
+        } catch (error) {
+            this.logger.error(`Error al guardar el cupón compartido: ${error.message}`);
+            throw new BadRequestException('No se pudo generar el código del cupón');
+        }
+    }
+
+    // ==================== OBTENER CUPON COMPARTIDO ====================
+    async obtenerCupon(codigo: string): Promise<any[]> {
+        if (!codigo) {
+            throw new BadRequestException('Debe proporcionar un código de cupón');
+        }
+
+        const codigoUpper = codigo.toUpperCase();
+
+        try {
+            const data = fs.readFileSync(this.cuponesFile, 'utf-8');
+            const cupones = JSON.parse(data);
+            
+            const cupon = cupones[codigoUpper];
+            if (!cupon) {
+                throw new NotFoundException('Cupón no encontrado o expirado');
+            }
+
+            this.logger.log(`🔗 Cupón cargado exitosamente: ${codigoUpper}`);
+            return cupon.selecciones;
+        } catch (error) {
+            if (error instanceof NotFoundException) throw error;
+            this.logger.error(`Error al leer el cupón compartido: ${error.message}`);
+            throw new BadRequestException('Error al cargar el cupón');
+        }
     }
 }
