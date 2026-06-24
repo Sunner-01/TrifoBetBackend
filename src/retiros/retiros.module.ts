@@ -4,6 +4,6 @@ import { RetirosService } from './retiros.service';
 
 @Module({
   controllers: [RetirosController],
-  providers: [RetirosService]
+  providers: [RetirosService],
 })
 export class RetirosModule {}

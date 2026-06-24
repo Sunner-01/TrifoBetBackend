@@ -41,14 +41,14 @@ describe('Juegos — Pruebas Unitarias', () => {
       ],
     }).compile();
 
-    plinkoService     = module.get<PlinkoService>(PlinkoService);
+    plinkoService = module.get<PlinkoService>(PlinkoService);
     tragamonedasService = module.get<TragamonedasService>(TragamonedasService);
     chickenRoadService = module.get<ChickenRoadService>(ChickenRoadService);
 
     // Inyectamos el mock directamente en cada servicio
-    (plinkoService as any).supabase     = mockSupabase;
+    (plinkoService as any).supabase = mockSupabase;
     (tragamonedasService as any).supabase = mockSupabase;
-    (chickenRoadService as any).supabase  = mockSupabase;
+    (chickenRoadService as any).supabase = mockSupabase;
   });
 
   afterEach(() => jest.clearAllMocks());
@@ -70,7 +70,10 @@ describe('Juegos — Pruebas Unitarias', () => {
   // ── CASO 23: Plinko — path tiene exactamente 14 pasos ─────────────────
   it('[Plinko] play() debe retornar un path con exactamente 14 pasos (0 ó 1)', async () => {
     // Saldo suficiente
-    mockSupabase.single.mockResolvedValue({ data: { saldo: 1000 }, error: null });
+    mockSupabase.single.mockResolvedValue({
+      data: { saldo: 1000 },
+      error: null,
+    });
     // Actualización de saldo y transacciones
     mockSupabase._setThenResult(null, null);
 
@@ -84,9 +87,14 @@ describe('Juegos — Pruebas Unitarias', () => {
 
   // ── CASO 24: Plinko — multiplier es un valor válido ────────────────────
   it('[Plinko] play() debe retornar un multiplier del array de multiplicadores', async () => {
-    const validMultipliers = [1000, 100, 10, 5, 2, 1, 0.5, 0.2, 0.5, 1, 2, 5, 10, 100, 1000];
+    const validMultipliers = [
+      1000, 100, 10, 5, 2, 1, 0.5, 0.2, 0.5, 1, 2, 5, 10, 100, 1000,
+    ];
 
-    mockSupabase.single.mockResolvedValue({ data: { saldo: 1000 }, error: null });
+    mockSupabase.single.mockResolvedValue({
+      data: { saldo: 1000 },
+      error: null,
+    });
     mockSupabase._setThenResult(null, null);
 
     const result = await plinkoService.play('user-1', 10);
@@ -102,7 +110,10 @@ describe('Juegos — Pruebas Unitarias', () => {
 
   // ── CASO 25: Tragamonedas — genera grid 3x3 válido ───────────────────
   it('[Tragamonedas] spin() debe generar un grid 3x3 con IDs de símbolo válidos (0-8)', async () => {
-    mockSupabase.single.mockResolvedValue({ data: { saldo: 500 }, error: null });
+    mockSupabase.single.mockResolvedValue({
+      data: { saldo: 500 },
+      error: null,
+    });
     mockSupabase._setThenResult(null, null);
 
     const result = await tragamonedasService.spin('user-1', 5);
@@ -120,7 +131,10 @@ describe('Juegos — Pruebas Unitarias', () => {
 
   // ── CASO 26: Tragamonedas — balance disminuye por la apuesta ───────────
   it('[Tragamonedas] spin() debe reducir el balance en el monto de la apuesta', async () => {
-    mockSupabase.single.mockResolvedValue({ data: { saldo: 100 }, error: null });
+    mockSupabase.single.mockResolvedValue({
+      data: { saldo: 100 },
+      error: null,
+    });
     mockSupabase._setThenResult(null, null);
 
     const result = await tragamonedasService.spin('user-1', 10);

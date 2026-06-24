@@ -14,11 +14,13 @@ async function bootstrap() {
   });
 
   // Validación global
-  app.useGlobalPipes(new ValidationPipe({
-    transform: true,
-    whitelist: true,
-    forbidNonWhitelisted: true,
-  }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    }),
+  );
 
   // Configurar el adaptador personalizado de Socket.IO con CORS
   app.useWebSocketAdapter(new SocketIOAdapter(app));
@@ -26,7 +28,7 @@ async function bootstrap() {
   const port = process.env.PORT || 3000;
   await app.listen(port);
 
-  console.log(`🚀 Backend + Socket.IO corriendo en http://localhost:${port}`);
-  console.log('🎮 WebSocket Gateway listo para conexiones');
+  console.log(`Backend + Socket.IO corriendo en http://localhost:${port}`);
+  console.log('WebSocket Gateway listo para conexiones');
 }
 bootstrap();

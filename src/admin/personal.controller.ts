@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Put, Param, Body, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Param,
+  Body,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { PersonalService } from './personal.service';
 import { AdminGuard } from './guards/admin.guard';
 

@@ -1,44 +1,48 @@
 // src/admin/admin.controller.ts
 import {
-  Controller, Get, Patch, Param, Body, Query,
-  UseGuards, ParseIntPipe, Request
+  Controller,
+  Get,
+  Patch,
+  Post,
+  Put,
+  Delete,
+  Param,
+  Body,
+  Query,
+  UseGuards,
+  ParseIntPipe,
+  Request,
 } from '@nestjs/common';
-import { AdminService } from './admin.service';
 import { AdminGuard } from './guards/admin.guard';
-import { VerificacionService } from '../verificacion/verificacion.service';
+
+// Importación de los nuevos servicios especializados (SRP)
+import { AdminUsersService } from './admin-users.service';
+import { AdminApuestasService } from './admin-apuestas.service';
+import { AdminDashboardService } from './admin-dashboard.service';
+import { AdminVerificacionService } from './admin-verificacion.service';
+import { AdminJuegosCasinoService } from './admin-juegos-casino.service';
 
 @Controller('admin')
 @UseGuards(AdminGuard)
 export class AdminController {
   constructor(
-    private readonly adminService: AdminService,
-    private readonly verificacionService: VerificacionService
+    private readonly adminUsersService: AdminUsersService,
+    private readonly adminApuestasService: AdminApuestasService,
+    private readonly adminDashboardService: AdminDashboardService,
+    private readonly adminVerificacionService: AdminVerificacionService,
+    private readonly adminJuegosCasinoService: AdminJuegosCasinoService,
   ) {}
 
-  /**
-   * GET /admin/stats
-   * Estadísticas generales del sistema
-   */
   @Get('stats')
   getStats() {
-    return this.adminService.getStats();
+    return this.adminUsersService.getStats();
   }
 
-  /**
-   * GET /admin/dashboard-stats
-   * Estadísticas avanzadas y de gráficas para el dashboard principal
-   * Query params: range (7d, 30d, mes, all)
-   */
   @Get('dashboard-stats')
   getDashboardStats(@Query('range') range?: string) {
-    return this.adminService.getDashboardStats(range || '7d');
+    return this.adminDashboardService.getDashboardStats(range || '7d');
   }
 
-  /**
-   * GET /admin/usuarios
-   * Listar usuarios con paginación y búsqueda
-   * Query params: page, limit, search, habilitado, rol_id
-   */
   @Get('usuarios')
   getUsuarios(
     @Query('page') page?: string,
@@ -47,7 +51,7 @@ export class AdminController {
     @Query('habilitado') habilitado?: string,
     @Query('rol_id') rol_id?: string,
   ) {
-    return this.adminService.getUsuarios({
+    return this.adminUsersService.getUsuarios({
       page: page ? parseInt(page) : 1,
       limit: limit ? parseInt(limit) : 20,
       search,
@@ -56,39 +60,22 @@ export class AdminController {
     });
   }
 
-  /**
-   * GET /admin/usuarios/:id
-   * Ver detalle completo de un usuario
-   */
   @Get('usuarios/:id')
   getUsuario(@Param('id', ParseIntPipe) id: number) {
-    return this.adminService.getUsuario(id);
+    return this.adminUsersService.getUsuario(id);
   }
 
-  /**
-   * PATCH /admin/usuarios/:id/habilitar
-   * Suspender o reactivar un usuario (toggle)
-   */
   @Patch('usuarios/:id/habilitar')
   toggleHabilitado(@Param('id', ParseIntPipe) id: number) {
-    return this.adminService.toggleHabilitado(id);
+    return this.adminUsersService.toggleHabilitado(id);
   }
 
-  /**
-   * PATCH /admin/usuarios/:id
-   * Editar datos de un usuario
-   */
   @Patch('usuarios/:id')
-  updateUsuario(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() body: any,
-  ) {
-    return this.adminService.updateUsuario(id, body);
+  updateUsuario(@Param('id', ParseIntPipe) id: number, @Body() body: any) {
+    return this.adminUsersService.updateUsuario(id, body);
   }
 
-  // ────────────────────────────────────────────────────────
   // KYC / VERIFICACIÓN DE IDENTIDAD
-  // ────────────────────────────────────────────────────────
 
   @Get('verificaciones')
   getVerificaciones(
@@ -96,7 +83,7 @@ export class AdminController {
     @Query('limit') limit?: string,
     @Query('estado') estado?: string,
   ) {
-    return this.verificacionService.getVerificaciones({
+    return this.adminVerificacionService.getVerificaciones({
       page: page ? parseInt(page) : 1,
       limit: limit ? parseInt(limit) : 20,
       estado,
@@ -107,15 +94,13 @@ export class AdminController {
   procesarVerificacion(
     @Param('id', ParseIntPipe) id: number,
     @Request() req,
-    @Body() body: { accion: 'aprobar' | 'rechazar'; motivo?: string }
+    @Body() body: { accion: 'aprobar' | 'rechazar'; motivo?: string },
   ) {
     const adminId = req.user.sub || req.user.id;
-    return this.verificacionService.procesarVerificacion(id, adminId, body);
+    return this.adminVerificacionService.procesarVerificacion(id, adminId, body);
   }
 
-  // ────────────────────────────────────────────────────────
   // APUESTAS DEPORTIVAS
-  // ────────────────────────────────────────────────────────
 
   @Get('apuestas')
   getTodasApuestas(
@@ -124,7 +109,7 @@ export class AdminController {
     @Query('search') search?: string,
     @Query('estado') estado?: string,
   ) {
-    return this.adminService.getTodasApuestas({
+    return this.adminApuestasService.getTodasApuestas({
       page: page ? parseInt(page) : 1,
       limit: limit ? parseInt(limit) : 20,
       search,
@@ -134,6 +119,33 @@ export class AdminController {
 
   @Get('apuestas/stats')
   getEstadisticasApuestas() {
-    return this.adminService.getEstadisticasApuestas();
+    return this.adminApuestasService.getEstadisticasApuestas();
+  }
+
+  // JUEGOS CASINO
+
+  @Get('juegos-casino')
+  getAllGamesAdmin() {
+    return this.adminJuegosCasinoService.getAllGamesAdmin();
+  }
+
+  @Get('juegos-casino/stats')
+  getAllGamesAdminStats() {
+    return this.adminJuegosCasinoService.getAllGamesAdminStats();
+  }
+
+  @Post('juegos-casino')
+  createGame(@Body() createDto: any) {
+    return this.adminJuegosCasinoService.createGame(createDto);
+  }
+
+  @Put('juegos-casino/:id')
+  updateGame(@Param('id', ParseIntPipe) id: number, @Body() updateDto: any) {
+    return this.adminJuegosCasinoService.updateGame(id, updateDto);
+  }
+
+  @Delete('juegos-casino/:id')
+  deleteGame(@Param('id', ParseIntPipe) id: number) {
+    return this.adminJuegosCasinoService.deleteGame(id);
   }
 }

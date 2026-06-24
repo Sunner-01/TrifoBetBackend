@@ -23,4 +23,4 @@ import { PassportModule } from '@nestjs/passport';
   controllers: [BlackjackController],
   exports: [BlackjackService],
 })
-export class BlackjackModule { }
+export class BlackjackModule {}

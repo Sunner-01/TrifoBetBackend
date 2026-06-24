@@ -50,7 +50,10 @@ describe('Apuestas Deportivas — Pruebas de Integración', () => {
     await app.init();
 
     jwtService = moduleRef.get<JwtService>(JwtService);
-    authToken = jwtService.sign({ sub: mockUser.id, username: mockUser.nombre_usuario });
+    authToken = jwtService.sign({
+      sub: mockUser.id,
+      username: mockUser.nombre_usuario,
+    });
   });
 
   afterAll(async () => {
@@ -81,7 +84,7 @@ describe('Apuestas Deportivas — Pruebas de Integración', () => {
       })
       // Select creada
       .mockResolvedValueOnce({
-         data: {
+        data: {
           id: 1,
           usuario_id: mockUser.id,
           tipo: TipoApuesta.SIMPLE,
@@ -89,8 +92,8 @@ describe('Apuestas Deportivas — Pruebas de Integración', () => {
           cuota_total: 2.0,
           ganancia_potencial: 200,
           estado: 'pendiente',
-         },
-         error: null
+        },
+        error: null,
       });
 
     // Mock para update saldo y selecciones (eliminado para no romper la cadena .select())
@@ -127,7 +130,10 @@ describe('Apuestas Deportivas — Pruebas de Integración', () => {
   // ── CASO 13: POST /apuestas-deportivas — error (saldo insuficiente) ────────
   it('POST /apuestas-deportivas debe rechazar si el saldo es insuficiente', async () => {
     mockSupabase._setThenResult([{ id: 1 }], null);
-    mockSupabase.single.mockResolvedValueOnce({ data: { saldo: 50 }, error: null });
+    mockSupabase.single.mockResolvedValueOnce({
+      data: { saldo: 50 },
+      error: null,
+    });
 
     const response = await request(app.getHttpServer())
       .post('/apuestas-deportivas/crear')

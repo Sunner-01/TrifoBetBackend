@@ -22,9 +22,13 @@ export class PerfilService {
 
     // DEBUG: Verificar valores exactos (incluyendo comillas y espacios)
     this.logger.log('=== CONFIGURACIÓN DE CLOUDINARY ===');
-    this.logger.log(`Cloud Name RAW: "${cloudName}" (length: ${cloudName?.length})`);
+    this.logger.log(
+      `Cloud Name RAW: "${cloudName}" (length: ${cloudName?.length})`,
+    );
     this.logger.log(`API Key RAW: "${apiKey}" (length: ${apiKey?.length})`);
-    this.logger.log(`API Secret presente: ${apiSecret ? 'SÍ' : 'NO'} (length: ${apiSecret?.length})`);
+    this.logger.log(
+      `API Secret presente: ${apiSecret ? 'SÍ' : 'NO'} (length: ${apiSecret?.length})`,
+    );
 
     // Limpiar posibles comillas si existen
     const cleanCloudName = cloudName?.replace(/^["']|["']$/g, '').trim();
@@ -52,7 +56,9 @@ export class PerfilService {
       .single();
 
     if (error || !data) {
-      this.logger.error(`Error obteniendo perfil de usuario ${userId}: ${error?.message}`);
+      this.logger.error(
+        `Error obteniendo perfil de usuario ${userId}: ${error?.message}`,
+      );
       throw new NotFoundException('Usuario no encontrado');
     }
 
@@ -66,7 +72,10 @@ export class PerfilService {
 
     let saldoRetenido = 0;
     if (!retirosError && retirosData) {
-      saldoRetenido = retirosData.reduce((acc, curr) => acc + Number(curr.monto), 0);
+      saldoRetenido = retirosData.reduce(
+        (acc, curr) => acc + Number(curr.monto),
+        0,
+      );
     }
 
     return {
@@ -96,7 +105,8 @@ export class PerfilService {
     if (dto.apellido1 !== undefined) updateData.apellido1 = dto.apellido1;
     if (dto.apellido2 !== undefined) updateData.apellido2 = dto.apellido2;
     if (dto.ci !== undefined) updateData.ci = dto.ci;
-    if (dto.fechaNacimiento !== undefined) updateData.fecha_nacimiento = dto.fechaNacimiento;
+    if (dto.fechaNacimiento !== undefined)
+      updateData.fecha_nacimiento = dto.fechaNacimiento;
     if (dto.correo !== undefined) updateData.correo = dto.correo;
     if (dto.telefono !== undefined) updateData.telefono = dto.telefono;
     if (dto.paisCodigo !== undefined) updateData.pais_codigo = dto.paisCodigo;
@@ -107,7 +117,9 @@ export class PerfilService {
       .eq('id', userId);
 
     if (error) {
-      this.logger.error(`Error actualizando perfil de usuario ${userId}: ${error.message}`);
+      this.logger.error(
+        `Error actualizando perfil de usuario ${userId}: ${error.message}`,
+      );
       throw new NotFoundException(error.message);
     }
 
@@ -123,7 +135,7 @@ export class PerfilService {
             folder: 'trifobet/avatars',
             transformation: [
               { width: 400, height: 400, crop: 'fill', gravity: 'face' },
-              { quality: 'auto', fetch_format: 'auto' }
+              { quality: 'auto', fetch_format: 'auto' },
             ],
           },
           (error, result) => (error ? reject(error) : resolve(result)),
@@ -142,24 +154,33 @@ export class PerfilService {
 
       // Eliminar foto anterior SOLO si NO es la imagen predeterminada
       if (usuario?.foto_perfil_url) {
-        const isDefaultPhoto = usuario.foto_perfil_url.includes('default-avatar');
+        const isDefaultPhoto =
+          usuario.foto_perfil_url.includes('default-avatar');
 
         if (!isDefaultPhoto) {
           try {
             const urlParts = usuario.foto_perfil_url.split('/');
             const uploadIndex = urlParts.indexOf('upload');
             if (uploadIndex !== -1 && uploadIndex + 2 < urlParts.length) {
-              const pathAfterVersion = urlParts.slice(uploadIndex + 2).join('/');
+              const pathAfterVersion = urlParts
+                .slice(uploadIndex + 2)
+                .join('/');
               const publicId = pathAfterVersion.replace(/\.[^/.]+$/, '');
 
-              this.logger.log(`Eliminando foto personalizada anterior: ${publicId}`);
+              this.logger.log(
+                `Eliminando foto personalizada anterior: ${publicId}`,
+              );
               await cloudinary.uploader.destroy(publicId);
             }
           } catch (deleteError: any) {
-            this.logger.warn(`No se pudo eliminar la foto anterior: ${deleteError.message}`);
+            this.logger.warn(
+              `No se pudo eliminar la foto anterior: ${deleteError.message}`,
+            );
           }
         } else {
-          this.logger.log('La foto anterior es la imagen predeterminada, NO se eliminará');
+          this.logger.log(
+            'La foto anterior es la imagen predeterminada, NO se eliminará',
+          );
         }
       }
 
@@ -170,13 +191,17 @@ export class PerfilService {
         .eq('id', userId);
 
       if (error) {
-        this.logger.error(`Error actualizando URL de foto de usuario ${userId}: ${error.message}`);
+        this.logger.error(
+          `Error actualizando URL de foto de usuario ${userId}: ${error.message}`,
+        );
         throw new NotFoundException(error.message);
       }
 
       return { foto_perfil_url: nuevaUrl };
     } catch (error: any) {
-      this.logger.error(`Error en updateProfilePhoto para usuario ${userId}: ${error.message}`);
+      this.logger.error(
+        `Error en updateProfilePhoto para usuario ${userId}: ${error.message}`,
+      );
       throw error;
     }
   }
@@ -200,7 +225,7 @@ export class PerfilService {
       if (isDefaultPhoto) {
         return {
           mensaje: 'Ya tienes la imagen predeterminada',
-          foto_perfil_url: usuario.foto_perfil_url
+          foto_perfil_url: usuario.foto_perfil_url,
         };
       }
 
@@ -216,11 +241,15 @@ export class PerfilService {
           await cloudinary.uploader.destroy(publicId);
         }
       } catch (deleteError: any) {
-        this.logger.warn(`No se pudo eliminar la foto de Cloudinary: ${deleteError.message}`);
+        this.logger.warn(
+          `No se pudo eliminar la foto de Cloudinary: ${deleteError.message}`,
+        );
       }
 
       // Restaurar la imagen predeterminada
-      const defaultPhotoUrl = this.configService.get<string>('DEFAULT_PROFILE_PHOTO_URL');
+      const defaultPhotoUrl = this.configService.get<string>(
+        'DEFAULT_PROFILE_PHOTO_URL',
+      );
 
       const { error } = await this.supabase
         .from('usuario')
@@ -228,16 +257,20 @@ export class PerfilService {
         .eq('id', userId);
 
       if (error) {
-        this.logger.error(`Error restaurando imagen predeterminada para usuario ${userId}: ${error.message}`);
+        this.logger.error(
+          `Error restaurando imagen predeterminada para usuario ${userId}: ${error.message}`,
+        );
         throw new NotFoundException(error.message);
       }
 
       return {
         mensaje: 'Foto de perfil eliminada correctamente',
-        foto_perfil_url: defaultPhotoUrl
+        foto_perfil_url: defaultPhotoUrl,
       };
     } catch (error: any) {
-      this.logger.error(`Error en deleteProfilePhoto para usuario ${userId}: ${error.message}`);
+      this.logger.error(
+        `Error en deleteProfilePhoto para usuario ${userId}: ${error.message}`,
+      );
       throw error;
     }
   }

@@ -1,4 +1,4 @@
-// src/auth/ws-jwt.guard.ts (Nuevo archivo para guard WS)
+// src/auth/ws-jwt.guard.ts 
 import { CanActivate, ExecutionContext } from '@nestjs/common';
 import { WsException } from '@nestjs/websockets';
 import { Socket } from 'socket.io';

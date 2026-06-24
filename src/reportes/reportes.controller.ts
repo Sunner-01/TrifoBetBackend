@@ -1,4 +1,11 @@
-import { Controller, Get, UseGuards, Param, ParseIntPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  UseGuards,
+  Param,
+  Query,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ReportesService } from './reportes.service';
 
@@ -9,23 +16,35 @@ export class ReportesController {
 
   // Financieros
   @Get('financieros/cashflow')
-  getCashflow() {
-    return this.reportesService.getCashflow();
+  getCashflow(
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.reportesService.getCashflow(startDate, endDate);
   }
 
   @Get('financieros/ggr')
-  getGGR() {
-    return this.reportesService.getGGR();
+  getGGR(
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.reportesService.getGGR(startDate, endDate);
   }
 
   @Get('financieros/depositos-metodo')
-  getDepositosPorMetodo() {
-    return this.reportesService.getDepositosPorMetodo();
+  getDepositosPorMetodo(
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.reportesService.getDepositosPorMetodo(startDate, endDate);
   }
 
   @Get('financieros/retiros')
-  getRetiros() {
-    return this.reportesService.getRetiros();
+  getRetiros(
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.reportesService.getRetiros(startDate, endDate);
   }
 
   // Jugadores
@@ -35,30 +54,45 @@ export class ReportesController {
   }
 
   @Get('jugadores/top')
-  getTopJugadores() {
-    return this.reportesService.getTopJugadores();
+  getTopJugadores(
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.reportesService.getTopJugadores(startDate, endDate);
   }
 
   @Get('jugadores/registros')
-  getNuevosRegistros() {
-    return this.reportesService.getNuevosRegistros();
+  getNuevosRegistros(
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.reportesService.getNuevosRegistros(startDate, endDate);
   }
 
   // Deportes
   @Get('deportes/historial')
-  getApuestasDeportivas() {
-    return this.reportesService.getApuestasDeportivas();
+  getApuestasDeportivas(
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.reportesService.getApuestasDeportivas(startDate, endDate);
   }
 
   // Casino
   @Get('casino/rentabilidad')
-  getRentabilidadCasino() {
-    return this.reportesService.getRentabilidadCasino();
+  getRentabilidadCasino(
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.reportesService.getRentabilidadCasino(startDate, endDate);
   }
 
   // Soporte
   @Get('soporte/eficiencia')
-  getEficienciaSoporte() {
-    return this.reportesService.getEficienciaSoporte();
+  getEficienciaSoporte(
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.reportesService.getEficienciaSoporte(startDate, endDate);
   }
 }

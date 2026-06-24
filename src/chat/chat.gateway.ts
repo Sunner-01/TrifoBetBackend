@@ -24,7 +24,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   server: Server;
 
   private readonly logger = new Logger(ChatGateway.name);
-  private connectedUsers = new Map<string, { userId: number; username: string }>();
+  private connectedUsers = new Map<
+    string,
+    { userId: number; username: string }
+  >();
 
   constructor(
     private chatService: ChatService,
@@ -43,12 +46,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       const secret = this.configService.get<string>('JWT_SECRET');
       const payload = this.jwtService.verify(token, { secret });
-      
-      const userId = payload.sub || payload.userId || payload.id_usuario || payload.id;
+
+      const userId =
+        payload.sub || payload.userId || payload.id_usuario || payload.id;
       const username = payload.nombre_usuario || payload.username || 'Usuario';
 
       this.connectedUsers.set(client.id, { userId, username });
-      this.logger.log(`Cliente conectado: ${client.id} (User ID: ${userId}, Username: ${username})`);
+      this.logger.log(
+        `Cliente conectado: ${client.id} (User ID: ${userId}, Username: ${username})`,
+      );
 
       // Enviar historial de mensajes al usuario que acaba de conectar
       const recentMessages = await this.chatService.getRecentMessages();
@@ -104,7 +110,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const user = this.connectedUsers.get(client.id);
     if (!user) return;
 
-    if (!payload.text || payload.text.trim().length === 0 || !payload.messageId) {
+    if (
+      !payload.text ||
+      payload.text.trim().length === 0 ||
+      !payload.messageId
+    ) {
       return;
     }
 

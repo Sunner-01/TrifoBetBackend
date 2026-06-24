@@ -26,7 +26,10 @@ describe('Blackjack — Pruebas de Integración (Estado)', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         BlackjackService,
-        { provide: ConfigService, useValue: { get: jest.fn().mockReturnValue('test') } },
+        {
+          provide: ConfigService,
+          useValue: { get: jest.fn().mockReturnValue('test') },
+        },
       ],
     }).compile();
 
@@ -39,16 +42,23 @@ describe('Blackjack — Pruebas de Integración (Estado)', () => {
     const userId = 'user-1';
     service.initGame(userId, 1000);
     service.addBet(userId, 100);
-    
+
     await service.dealInitial(userId);
     // Forzamos cartas para prueba estable
     const state = service.getState(userId);
-    state.playerHands[0] = [{ suit: 'Heart', value: '10', isRed: true, numericValue: 10 } as any];
+    state.playerHands[0] = [
+      { suit: 'Heart', value: '10', isRed: true, numericValue: 10 } as any,
+    ];
     state.playerScores[0] = 10;
-    
+
     // Forzamos la siguiente carta en el deck
-    state.deck.cards.push({ suit: 'Club', value: '5', isRed: false, numericValue: 5 } as any);
-    
+    state.deck.cards.push({
+      suit: 'Club',
+      value: '5',
+      isRed: false,
+      numericValue: 5,
+    } as any);
+
     const update = service.hit(userId) as any;
     expect(update.playerScores[0]).toBe(15);
     expect(update.handStatus[0]).toBe('playing');
@@ -59,19 +69,24 @@ describe('Blackjack — Pruebas de Integración (Estado)', () => {
     const userId = 'user-2';
     service.initGame(userId, 1000);
     service.addBet(userId, 100);
-    
+
     await service.dealInitial(userId);
     const state = service.getState(userId);
     // Mano inicial 15
     state.playerHands[0] = [
       { suit: 'Heart', value: '10', isRed: true, numericValue: 10 } as any,
-      { suit: 'Club', value: '5', isRed: false, numericValue: 5 } as any
+      { suit: 'Club', value: '5', isRed: false, numericValue: 5 } as any,
     ];
     state.playerScores[0] = 15;
-    
+
     // Siguiente carta 10
-    state.deck.cards.push({ suit: 'Diamond', value: '10', isRed: true, numericValue: 10 } as any);
-    
+    state.deck.cards.push({
+      suit: 'Diamond',
+      value: '10',
+      isRed: true,
+      numericValue: 10,
+    } as any);
+
     const update = service.hit(userId) as any;
     expect(update.playerScores[0]).toBe(25);
     expect(update.handStatus[0]).toBe('busted');
@@ -82,10 +97,10 @@ describe('Blackjack — Pruebas de Integración (Estado)', () => {
     const userId = 'user-3';
     service.initGame(userId, 1000);
     service.addBet(userId, 100);
-    
+
     await service.dealInitial(userId);
     const update = service.stand(userId) as any;
-    
+
     expect(update.handStatus[0]).toBe('stood');
     expect(update.message).toMatch(/dealer/i);
   });
@@ -95,15 +110,20 @@ describe('Blackjack — Pruebas de Integración (Estado)', () => {
     const userId = 'user-4';
     service.initGame(userId, 1000);
     service.addBet(userId, 100); // 100 apuesta inicial
-    
+
     await service.dealInitial(userId);
     const state = service.getState(userId);
-    
+
     // Forzar un par de 8s
-    const card8 = { suit: 'Heart', value: '8', isRed: true, numericValue: 8 } as any;
+    const card8 = {
+      suit: 'Heart',
+      value: '8',
+      isRed: true,
+      numericValue: 8,
+    } as any;
     state.playerHands[0] = [card8, card8];
     state.playerScores[0] = 16;
-    
+
     const update = service.split(userId) as any;
     expect(update.playerHands).toHaveLength(2);
     expect(update.playerHands[0]).toHaveLength(1);
@@ -119,16 +139,21 @@ describe('Blackjack — Pruebas de Integración (Estado)', () => {
     const userId = 'user-5';
     service.initGame(userId, 1000);
     service.addBet(userId, 100);
-    
+
     await service.dealInitial(userId);
     const state = service.getState(userId);
     state.playerHands[0] = [
-       { suit: 'Heart', value: '5', isRed: true, numericValue: 5 } as any,
-       { suit: 'Club', value: '6', isRed: false, numericValue: 6 } as any,
+      { suit: 'Heart', value: '5', isRed: true, numericValue: 5 } as any,
+      { suit: 'Club', value: '6', isRed: false, numericValue: 6 } as any,
     ];
     state.playerScores[0] = 11;
-    state.deck.cards.push({ suit: 'Spade', value: '10', isRed: false, numericValue: 10 } as any);
-    
+    state.deck.cards.push({
+      suit: 'Spade',
+      value: '10',
+      isRed: false,
+      numericValue: 10,
+    } as any);
+
     const update = service.double(userId) as any;
     expect(update.handBets[0]).toBe(200);
     expect(update.playerHands[0]).toHaveLength(3);

@@ -6,7 +6,7 @@ import {
   WebSocketServer,
   WebSocketGateway,
   OnGatewayConnection,
-  OnGatewayDisconnect
+  OnGatewayDisconnect,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { BlackjackService } from './blackjack.service';
@@ -18,7 +18,9 @@ import { JwtService } from '@nestjs/jwt';
     credentials: true,
   },
 })
-export class BlackjackGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class BlackjackGateway
+  implements OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer()
   server: Server;
 
@@ -75,7 +77,6 @@ export class BlackjackGateway implements OnGatewayConnection, OnGatewayDisconnec
         canDouble: false,
         canSplit: false,
       });
-
     } catch (error) {
       console.error('❌ Error en conexión:', error);
       client.disconnect();
@@ -102,7 +103,10 @@ export class BlackjackGateway implements OnGatewayConnection, OnGatewayDisconnec
   }
 
   @SubscribeMessage('addBet')
-  handleAddBet(@MessageBody() data: { amount: number }, @ConnectedSocket() client: Socket) {
+  handleAddBet(
+    @MessageBody() data: { amount: number },
+    @ConnectedSocket() client: Socket,
+  ) {
     const userId = client.data.userId;
     try {
       const update = this.blackjackService.addBet(userId, data.amount);
@@ -127,19 +131,32 @@ export class BlackjackGateway implements OnGatewayConnection, OnGatewayDisconnec
       const initialState = await this.blackjackService.dealInitial(userId);
       client.emit('gameUpdate', initialState);
 
-      const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+      const wait = (ms: number) =>
+        new Promise((resolve) => setTimeout(resolve, ms));
 
       await wait(500);
-      client.emit('gameUpdate', this.blackjackService.dealSingleCardToPlayer(userId, 0));
+      client.emit(
+        'gameUpdate',
+        this.blackjackService.dealSingleCardToPlayer(userId, 0),
+      );
 
       await wait(500);
-      client.emit('gameUpdate', this.blackjackService.dealSingleCardToDealer(userId, false));
+      client.emit(
+        'gameUpdate',
+        this.blackjackService.dealSingleCardToDealer(userId, false),
+      );
 
       await wait(500);
-      client.emit('gameUpdate', this.blackjackService.dealSingleCardToPlayer(userId, 0));
+      client.emit(
+        'gameUpdate',
+        this.blackjackService.dealSingleCardToPlayer(userId, 0),
+      );
 
       await wait(500);
-      client.emit('gameUpdate', this.blackjackService.dealSingleCardToDealer(userId, true));
+      client.emit(
+        'gameUpdate',
+        this.blackjackService.dealSingleCardToDealer(userId, true),
+      );
 
       await wait(300);
       const stateAfterCheck = this.blackjackService.checkInitial(userId);
@@ -147,11 +164,13 @@ export class BlackjackGateway implements OnGatewayConnection, OnGatewayDisconnec
 
       // Si el jugador tiene blackjack y no hay seguro, automáticamente pasar al turno del dealer
       const currentState = this.blackjackService.getState(userId);
-      if (currentState.handStatus[0] === 'blackjack' && !currentState.showInsurance) {
+      if (
+        currentState.handStatus[0] === 'blackjack' &&
+        !currentState.showInsurance
+      ) {
         await wait(1500);
         await this.animateDealerTurn(client, userId);
       }
-
     } catch (error) {
       client.emit('gameUpdate', { message: error.message });
     }
@@ -160,50 +179,83 @@ export class BlackjackGateway implements OnGatewayConnection, OnGatewayDisconnec
   @SubscribeMessage('hit')
   handleHit(@ConnectedSocket() client: Socket) {
     const userId = client.data.userId;
-    client.emit('gameUpdate', this.blackjackService.hit(userId));
+    try {
+      client.emit('gameUpdate', this.blackjackService.hit(userId));
+    } catch (err) {
+      client.emit('gameUpdate', { message: err.message });
+    }
   }
 
   @SubscribeMessage('stand')
   async handleStand(@ConnectedSocket() client: Socket) {
     const userId = client.data.userId;
-    const update = this.blackjackService.stand(userId);
-    client.emit('gameUpdate', update);
+    try {
+      const update = this.blackjackService.stand(userId);
+      client.emit('gameUpdate', update);
 
-    const state = this.blackjackService.getState(userId);
-    if (update.message === 'Turno del dealer' || !state.handStatus.includes('playing')) {
-      await this.animateDealerTurn(client, userId);
+      const state = this.blackjackService.getState(userId);
+      if (
+        update.message === 'Turno del dealer' ||
+        !state.handStatus.includes('playing')
+      ) {
+        await this.animateDealerTurn(client, userId);
+      }
+    } catch (err) {
+      client.emit('gameUpdate', { message: err.message });
     }
   }
 
   @SubscribeMessage('double')
   async handleDouble(@ConnectedSocket() client: Socket) {
     const userId = client.data.userId;
-    const update = this.blackjackService.double(userId);
-    client.emit('gameUpdate', update);
+    try {
+      const update = this.blackjackService.double(userId);
+      client.emit('gameUpdate', update);
 
-    const state = this.blackjackService.getState(userId);
-    if (update.message === 'Turno del dealer' || !state.handStatus.includes('playing')) {
-      await this.animateDealerTurn(client, userId);
+      const state = this.blackjackService.getState(userId);
+      if (
+        update.message === 'Turno del dealer' ||
+        !state.handStatus.includes('playing')
+      ) {
+        await this.animateDealerTurn(client, userId);
+      }
+    } catch (err) {
+      client.emit('gameUpdate', { message: err.message });
     }
   }
 
   @SubscribeMessage('split')
   handleSplit(@ConnectedSocket() client: Socket) {
     const userId = client.data.userId;
-    client.emit('gameUpdate', this.blackjackService.split(userId));
+    try {
+      client.emit('gameUpdate', this.blackjackService.split(userId));
+    } catch (err) {
+      client.emit('gameUpdate', { message: err.message });
+    }
   }
 
   @SubscribeMessage('takeInsurance')
-  async handleTakeInsurance(@MessageBody() data: { wantsInsurance: boolean }, @ConnectedSocket() client: Socket) {
+  async handleTakeInsurance(
+    @MessageBody() data: { wantsInsurance: boolean },
+    @ConnectedSocket() client: Socket,
+  ) {
     const userId = client.data.userId;
-    const update = this.blackjackService.takeInsurance(userId, data.wantsInsurance);
-    client.emit('gameUpdate', update);
+    try {
+      const update = this.blackjackService.takeInsurance(
+        userId,
+        data.wantsInsurance,
+      );
+      client.emit('gameUpdate', update);
 
-    const state = this.blackjackService.getState(userId);
-    if (state.handStatus[0] === 'blackjack' && !state.showInsurance) {
-      const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-      await wait(1500);
-      await this.animateDealerTurn(client, userId);
+      const state = this.blackjackService.getState(userId);
+      if (state.handStatus[0] === 'blackjack' && !state.showInsurance) {
+        const wait = (ms: number) =>
+          new Promise((resolve) => setTimeout(resolve, ms));
+        await wait(1500);
+        await this.animateDealerTurn(client, userId);
+      }
+    } catch (err) {
+      client.emit('gameUpdate', { message: err.message });
     }
   }
 
@@ -215,38 +267,46 @@ export class BlackjackGateway implements OnGatewayConnection, OnGatewayDisconnec
   }
 
   private async animateDealerTurn(client: Socket, userId: string) {
-    const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+    const state = this.blackjackService.getState(userId);
+    if (state.isDealerTurnActive) return; // Lock prevents multiple executions
+    state.isDealerTurnActive = true;
+
+    const wait = (ms: number) =>
+      new Promise((resolve) => setTimeout(resolve, ms));
 
     await wait(800);
 
-    const state = this.blackjackService.getState(userId);
-    state.dealerScore = this.blackjackService['calculateScore'](state.dealerHand);
+    state.dealerScore = this.blackjackService['calculateScore'](
+      state.dealerHand,
+    );
     client.emit('gameUpdate', {
       dealerScore: state.dealerScore,
-      message: 'Dealer revela...'
+      message: 'Dealer revela...',
     });
 
     await wait(800);
 
     // Si el jugador tiene blackjack, el dealer NO roba cartas (solo revela)
-    const playerHasBlackjack = state.handStatus.some(s => s === 'blackjack');
+    const playerHasBlackjack = state.handStatus.some((s) => s === 'blackjack');
 
     if (!playerHasBlackjack) {
       while (state.dealerScore < 17) {
         await wait(800);
         const card = state.deck.deal();
         state.dealerHand.push(card);
-        state.dealerScore = this.blackjackService['calculateScore'](state.dealerHand);
+        state.dealerScore = this.blackjackService['calculateScore'](
+          state.dealerHand,
+        );
 
         client.emit('gameUpdate', {
-          dealerHand: state.dealerHand.map(c => ({
+          dealerHand: state.dealerHand.map((c) => ({
             suit: c.suit,
             value: c.value,
             isRed: c.isRed,
             numericValue: c.numericValue,
           })),
           dealerScore: state.dealerScore,
-          message: `Dealer roba: ${state.dealerScore}`
+          message: `Dealer roba: ${state.dealerScore}`,
         });
       }
     }
@@ -256,5 +316,6 @@ export class BlackjackGateway implements OnGatewayConnection, OnGatewayDisconnec
     await this.blackjackService['resolveGame'](userId);
     const finalState = this.blackjackService['getPartialState'](state);
     client.emit('gameUpdate', finalState);
+    state.isDealerTurnActive = false; // Release lock
   }
 }

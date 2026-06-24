@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import * as bcrypt from 'bcrypt';
@@ -10,24 +14,34 @@ export class PersonalService {
   constructor(private configService: ConfigService) {
     this.supabase = createClient(
       this.configService.get<string>('SUPABASE_URL')!,
-      this.configService.get<string>('SUPABASE_SERVICE_ROLE_KEY') || this.configService.get<string>('SUPABASE_ANON_KEY')!,
+      this.configService.get<string>('SUPABASE_SERVICE_ROLE_KEY') ||
+        this.configService.get<string>('SUPABASE_ANON_KEY')!,
     );
   }
 
-  async getPersonal(params: { page?: number; limit?: number; search?: string }) {
+  async getPersonal(params: {
+    page?: number;
+    limit?: number;
+    search?: string;
+  }) {
     const page = Math.max(1, params.page || 1);
     const limit = Math.min(100, params.limit || 20);
     const offset = (page - 1) * limit;
 
     let query = this.supabase
       .from('usuario')
-      .select(`id, nombre, apellido1, apellido2, ci, telefono, fecha_nacimiento, correo, nombre_usuario, habilitado, created_at, rol_id, rol:rol_id(nombre)`, { count: 'exact' })
+      .select(
+        `id, nombre, apellido1, apellido2, ci, telefono, fecha_nacimiento, correo, nombre_usuario, habilitado, created_at, rol_id, rol:rol_id(nombre)`,
+        { count: 'exact' },
+      )
       .neq('rol_id', 2) // No incluir jugadores
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
     if (params.search) {
-      query = query.or(`nombre_usuario.ilike.%${params.search}%,correo.ilike.%${params.search}%,nombre.ilike.%${params.search}%`);
+      query = query.or(
+        `nombre_usuario.ilike.%${params.search}%,correo.ilike.%${params.search}%,nombre.ilike.%${params.search}%`,
+      );
     }
 
     const { data, error, count } = await query;
@@ -35,23 +49,25 @@ export class PersonalService {
     if (error) throw new BadRequestException(error.message);
 
     // Formatear y obtener conteo de transacciones
-    const personal = await Promise.all((data || []).map(async (p) => {
-      // Contar transacciones procesadas
-      const { count: txCount } = await this.supabase
-        .from('transaccion')
-        .select('id', { count: 'exact', head: true })
-        .eq('procesado_por', p.id);
+    const personal = await Promise.all(
+      (data || []).map(async (p) => {
+        // Contar transacciones procesadas
+        const { count: txCount } = await this.supabase
+          .from('transaccion')
+          .select('id', { count: 'exact', head: true })
+          .eq('procesado_por', p.id);
 
-      const { count: recargasCount } = await this.supabase
-        .from('solicitud_recarga')
-        .select('id', { count: 'exact', head: true })
-        .eq('aprobado_por', p.id);
+        const { count: recargasCount } = await this.supabase
+          .from('solicitud_recarga')
+          .select('id', { count: 'exact', head: true })
+          .eq('aprobado_por', p.id);
 
-      return {
-        ...p,
-        transacciones_procesadas: (txCount || 0) + (recargasCount || 0)
-      };
-    }));
+        return {
+          ...p,
+          transacciones_procesadas: (txCount || 0) + (recargasCount || 0),
+        };
+      }),
+    );
 
     return {
       data: personal,
@@ -74,7 +90,9 @@ export class PersonalService {
       .single();
 
     if (existingUser) {
-      throw new BadRequestException('El nombre de usuario o correo ya está en uso');
+      throw new BadRequestException(
+        'El nombre de usuario o correo ya está en uso',
+      );
     }
 
     const { data, error } = await this.supabase
@@ -86,7 +104,7 @@ export class PersonalService {
         contrasena_hash: hashedPassword,
         rol_id: parseInt(rol_id),
         habilitado: true,
-        verificado: true
+        verificado: true,
       })
       .select()
       .single();
@@ -103,8 +121,12 @@ export class PersonalService {
       .eq('id', id)
       .single();
 
-    if (getError || !usuario) throw new NotFoundException('Usuario no encontrado');
-    if (usuario.rol_id === 2) throw new BadRequestException('Solo se puede modificar personal administrativo');
+    if (getError || !usuario)
+      throw new NotFoundException('Usuario no encontrado');
+    if (usuario.rol_id === 2)
+      throw new BadRequestException(
+        'Solo se puede modificar personal administrativo',
+      );
 
     const nuevoEstado = !usuario.habilitado;
 
@@ -125,8 +147,10 @@ export class PersonalService {
       .eq('id', id)
       .single();
 
-    if (getError || !usuario) throw new NotFoundException('Usuario no encontrado');
-    if (usuario.rol_id === 2) throw new BadRequestException('Solo personal administrativo');
+    if (getError || !usuario)
+      throw new NotFoundException('Usuario no encontrado');
+    if (usuario.rol_id === 2)
+      throw new BadRequestException('Solo personal administrativo');
 
     const hashedPassword = await bcrypt.hash('Pass123.', 10);
 
@@ -137,7 +161,10 @@ export class PersonalService {
 
     if (error) throw new BadRequestException(error.message);
 
-    return { success: true, message: 'Contraseña restablecida correctamente a Pass123.' };
+    return {
+      success: true,
+      message: 'Contraseña restablecida correctamente a Pass123.',
+    };
   }
 
   async updatePersonal(id: number, dto: any) {
@@ -147,8 +174,10 @@ export class PersonalService {
       .eq('id', id)
       .single();
 
-    if (getError || !usuario) throw new NotFoundException('Usuario no encontrado');
-    if (usuario.rol_id === 2) throw new BadRequestException('No se puede editar jugadores desde aquí');
+    if (getError || !usuario)
+      throw new NotFoundException('Usuario no encontrado');
+    if (usuario.rol_id === 2)
+      throw new BadRequestException('No se puede editar jugadores desde aquí');
 
     const { error } = await this.supabase
       .from('usuario')
@@ -156,7 +185,7 @@ export class PersonalService {
         nombre: dto.nombre,
         correo: dto.correo,
         nombre_usuario: dto.nombre_usuario,
-        rol_id: parseInt(dto.rol_id)
+        rol_id: parseInt(dto.rol_id),
       })
       .eq('id', id);
 
@@ -166,21 +195,40 @@ export class PersonalService {
 
   async getPersonalStats(id: number) {
     // Rendimiento detallado
-    const [txAprobadas, txRechazadas, recargasAprobadas, recargasRechazadas] = await Promise.all([
-      this.supabase.from('transaccion').select('id', { count: 'exact', head: true }).eq('procesado_por', id).eq('estado', 'aprobado'),
-      this.supabase.from('transaccion').select('id', { count: 'exact', head: true }).eq('procesado_por', id).eq('estado', 'rechazado'),
-      this.supabase.from('solicitud_recarga').select('id', { count: 'exact', head: true }).eq('aprobado_por', id).eq('estado', 'aprobado'),
-      this.supabase.from('solicitud_recarga').select('id', { count: 'exact', head: true }).eq('aprobado_por', id).eq('estado', 'rechazado'),
-    ]);
+    const [txAprobadas, txRechazadas, recargasAprobadas, recargasRechazadas] =
+      await Promise.all([
+        this.supabase
+          .from('transaccion')
+          .select('id', { count: 'exact', head: true })
+          .eq('procesado_por', id)
+          .eq('estado', 'aprobado'),
+        this.supabase
+          .from('transaccion')
+          .select('id', { count: 'exact', head: true })
+          .eq('procesado_por', id)
+          .eq('estado', 'rechazado'),
+        this.supabase
+          .from('solicitud_recarga')
+          .select('id', { count: 'exact', head: true })
+          .eq('aprobado_por', id)
+          .eq('estado', 'aprobado'),
+        this.supabase
+          .from('solicitud_recarga')
+          .select('id', { count: 'exact', head: true })
+          .eq('aprobado_por', id)
+          .eq('estado', 'rechazado'),
+      ]);
 
-    const totalAprobadas = (txAprobadas.count || 0) + (recargasAprobadas.count || 0);
-    const totalRechazadas = (txRechazadas.count || 0) + (recargasRechazadas.count || 0);
+    const totalAprobadas =
+      (txAprobadas.count || 0) + (recargasAprobadas.count || 0);
+    const totalRechazadas =
+      (txRechazadas.count || 0) + (recargasRechazadas.count || 0);
     const total = totalAprobadas + totalRechazadas;
 
     // Métricas por día (últimos 7 días)
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    
+
     const { data: history } = await this.supabase
       .from('transaccion')
       .select('fecha_procesado, estado')
@@ -194,7 +242,8 @@ export class PersonalService {
       .gte('fecha_procesado', sevenDaysAgo.toISOString());
 
     // Agrupar
-    const graphData: Record<string, { aprobadas: number; rechazadas: number }> = {};
+    const graphData: Record<string, { aprobadas: number; rechazadas: number }> =
+      {};
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
@@ -202,7 +251,7 @@ export class PersonalService {
       graphData[dateStr] = { aprobadas: 0, rechazadas: 0 };
     }
 
-    [...(history || []), ...(recargasHistory || [])].forEach(t => {
+    [...(history || []), ...(recargasHistory || [])].forEach((t) => {
       if (!t.fecha_procesado) return;
       const dateStr = t.fecha_procesado.split('T')[0];
       if (graphData[dateStr]) {
@@ -216,12 +265,13 @@ export class PersonalService {
       totalAprobadas,
       totalRechazadas,
       total,
-      tasaAprobacion: total === 0 ? 0 : Math.round((totalAprobadas / total) * 100),
-      historial: Object.keys(graphData).map(date => ({
+      tasaAprobacion:
+        total === 0 ? 0 : Math.round((totalAprobadas / total) * 100),
+      historial: Object.keys(graphData).map((date) => ({
         fecha: date,
         aprobadas: graphData[date].aprobadas,
         rechazadas: graphData[date].rechazadas,
-      }))
+      })),
     };
   }
 }

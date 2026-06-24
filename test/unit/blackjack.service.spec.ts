@@ -21,7 +21,12 @@ function makeCard(suit: string, value: string) {
   let numericValue = parseInt(value);
   if (['J', 'Q', 'K'].includes(value)) numericValue = 10;
   if (value === 'A') numericValue = 11;
-  return { suit, value, isRed: suit === 'Heart' || suit === 'Diamond', numericValue };
+  return {
+    suit,
+    value,
+    isRed: suit === 'Heart' || suit === 'Diamond',
+    numericValue,
+  };
 }
 
 describe('BlackjackService — Pruebas Unitarias', () => {

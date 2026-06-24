@@ -2,14 +2,14 @@
 import { IsOptional, IsString } from 'class-validator';
 
 export class LoginDto {
-    @IsOptional()
-    @IsString()
-    nombreUsuario?: string;
+  @IsOptional()
+  @IsString()
+  nombreUsuario?: string;
 
-    @IsOptional()
-    @IsString()
-    correo?: string;
+  @IsOptional()
+  @IsString()
+  correo?: string;
 
-    @IsString()
-    contrasena: string;
+  @IsString()
+  contrasena: string;
 }

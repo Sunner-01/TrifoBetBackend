@@ -14,7 +14,12 @@ export class ChatService {
     );
   }
 
-  async saveMessage(userId: number, username: string, message: string, replyTo: any = null) {
+  async saveMessage(
+    userId: number,
+    username: string,
+    message: string,
+    replyTo: any = null,
+  ) {
     // Primero, obtenemos el avatar del usuario si está disponible
     const { data: usuario } = await this.supabase
       .from('usuario')
@@ -75,11 +80,11 @@ export class ChatService {
     if (!msg) return null;
 
     const currentReactions = msg.reactions || {};
-    
+
     if (!currentReactions[reaction]) {
       currentReactions[reaction] = [];
     }
-    
+
     const userIndex = currentReactions[reaction].indexOf(userId);
     if (userIndex > -1) {
       currentReactions[reaction].splice(userIndex, 1);
@@ -108,7 +113,7 @@ export class ChatService {
   async getRecentMessages(limit: number = 50) {
     const { data, error } = await this.supabase
       .from('chat_messages')
-      .select('*')
+      .select('*, usuario:user_id(foto_perfil_url)')
       .order('created_at', { ascending: false })
       .limit(limit);
 
@@ -117,7 +122,14 @@ export class ChatService {
       return [];
     }
 
+    // Actualizamos el avatar_url con el más reciente de la tabla usuario
+    const mappedData = data.map((msg) => ({
+      ...msg,
+      avatar_url: msg.usuario?.foto_perfil_url || msg.avatar_url,
+      usuario: undefined, // Removemos la relación anidada para mantener la estructura original
+    }));
+
     // Los obtenemos descendentes por fecha, pero para el chat es mejor enviarlos cronológicamente (más viejos primero)
-    return data.reverse();
+    return mappedData.reverse();
   }
 }

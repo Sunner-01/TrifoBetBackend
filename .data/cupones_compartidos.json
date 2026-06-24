@@ -246,5 +246,115 @@
         "marketType": "overunder"
       }
     ]
+  },
+  "0DE5DE": {
+    "fecha": "2026-06-18T21:05:01.707Z",
+    "selecciones": [
+      {
+        "id": 1489387,
+        "league": "World Cup",
+        "match": "Canada vs Qatar",
+        "type": "home",
+        "odds": "1.47",
+        "selection": "Canada",
+        "marketType": "1x2"
+      },
+      {
+        "id": 1489388,
+        "league": "World Cup",
+        "match": "Mexico vs South Korea",
+        "type": "home",
+        "odds": "1.59",
+        "selection": "Mexico",
+        "marketType": "1x2"
+      }
+    ]
+  },
+  "DFB25B": {
+    "fecha": "2026-06-23T23:08:32.203Z",
+    "selecciones": [
+      {
+        "id": 1489403,
+        "league": "World Cup",
+        "match": "Panama vs Croatia",
+        "type": "away",
+        "odds": "4.08",
+        "selection": "Croatia",
+        "marketType": "1x2"
+      },
+      {
+        "id": 1539008,
+        "league": "World Cup",
+        "match": "Colombia vs Congo DR",
+        "type": "home",
+        "odds": "2.17",
+        "selection": "Colombia",
+        "marketType": "1x2"
+      }
+    ]
+  },
+  "98AE97": {
+    "fecha": "2026-06-24T00:17:22.371Z",
+    "selecciones": [
+      {
+        "id": 1489403,
+        "match": "Panama vs Croatia",
+        "type": "visitante",
+        "odds": "5.53",
+        "league": "World Cup",
+        "selection": "visitante",
+        "marketType": "1x2"
+      },
+      {
+        "id": 1539008,
+        "match": "Colombia vs Congo DR",
+        "type": "local",
+        "odds": "2.17",
+        "league": "World Cup",
+        "selection": "local",
+        "marketType": "1x2"
+      },
+      {
+        "id": 1489408,
+        "match": "Switzerland vs Canada",
+        "type": "local",
+        "odds": "1.51",
+        "league": "World Cup",
+        "selection": "local",
+        "marketType": "1x2"
+      }
+    ]
+  },
+  "21EE99": {
+    "fecha": "2026-06-24T00:33:10.903Z",
+    "selecciones": [
+      {
+        "id": 1539008,
+        "match": "Colombia vs Congo DR",
+        "type": "visitante",
+        "odds": "2.88",
+        "league": "World Cup",
+        "selection": "visitante",
+        "marketType": "1x2"
+      },
+      {
+        "id": 1489408,
+        "match": "Switzerland vs Canada",
+        "type": "local",
+        "odds": "1.51",
+        "league": "World Cup",
+        "selection": "local",
+        "marketType": "1x2"
+      },
+      {
+        "id": 1489403,
+        "match": "Panama vs Croatia",
+        "type": "local",
+        "odds": "2.16",
+        "league": "World Cup",
+        "selection": "local",
+        "marketType": "1x2"
+      }
+    ]
   }
 }

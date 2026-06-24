@@ -1,4 +1,16 @@
-import { Controller, Get, Post, Put, Body, Param, Query, UseGuards, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -26,7 +38,7 @@ export class RetirosController {
   async addAccount(
     @CurrentUser() user: any,
     @Body() dto: any,
-    @UploadedFile() file?: Express.Multer.File
+    @UploadedFile() file?: Express.Multer.File,
   ) {
     const userId = user?.userId || user?.sub || user?.id;
     return this.retirosService.addAccount(userId, dto, file);
@@ -39,28 +51,28 @@ export class RetirosController {
   }
 
   @Post('solicitar')
-  async requestWithdrawal(@CurrentUser() user: any, @Body() dto: { cuenta_retiro_id: number; monto: number }) {
+  async requestWithdrawal(
+    @CurrentUser() user: any,
+    @Body() dto: { cuenta_retiro_id: number; monto: number },
+  ) {
     const userId = user?.userId || user?.sub || user?.id;
     return this.retirosService.requestWithdrawal(userId, dto);
   }
 
   @Put('usuario/cancelar/:id')
-  async cancelWithdrawal(
-    @CurrentUser() user: any,
-    @Param('id') id: string
-  ) {
+  async cancelWithdrawal(@CurrentUser() user: any, @Param('id') id: string) {
     const userId = user?.userId || user?.sub || user?.id;
     return this.retirosService.cancelWithdrawal(+id, userId);
   }
 
-  // --- MÉTODOS DE ADMINISTRADOR ---
+  //  MÉTODOS DE ADMINISTRADOR 
 
   @Get('admin/cuentas')
   async getAllAccounts(
     @Query('estado') estado?: string,
     @Query('billetera') billetera?: string,
     @Query('limit') limit?: string,
-    @Query('offset') offset?: string
+    @Query('offset') offset?: string,
   ) {
     const lim = limit ? parseInt(limit, 10) : 20;
     const off = offset ? parseInt(offset, 10) : 0;
@@ -68,14 +80,17 @@ export class RetirosController {
   }
 
   @Put('admin/cuentas/:id')
-  async processAccount(@Param('id') id: string, @Body('estado') estado: 'aprobada' | 'rechazada') {
+  async processAccount(
+    @Param('id') id: string,
+    @Body('estado') estado: 'aprobada' | 'rechazada',
+  ) {
     return this.retirosService.processAccount(+id, estado);
   }
 
   @Get('admin/solicitudes')
   async getPendingWithdrawals(
     @Query('limit') limit?: string,
-    @Query('offset') offset?: string
+    @Query('offset') offset?: string,
   ) {
     const lim = limit ? parseInt(limit, 10) : 20;
     const off = offset ? parseInt(offset, 10) : 0;
@@ -88,7 +103,10 @@ export class RetirosController {
       limits: { fileSize: 5 * 1024 * 1024 },
       fileFilter: (req, file, cb) => {
         if (!file.originalname.match(/\.(jpg|jpeg|png|webp)$/i)) {
-          return cb(new BadRequestException('Solo imágenes para comprobante'), false);
+          return cb(
+            new BadRequestException('Solo imágenes para comprobante'),
+            false,
+          );
         }
         cb(null, true);
       },
@@ -97,17 +115,14 @@ export class RetirosController {
   async processWithdrawal(
     @CurrentUser() user: any,
     @Param('id') id: string,
-    @UploadedFile() file: Express.Multer.File
+    @UploadedFile() file: Express.Multer.File,
   ) {
     const adminId = user?.userId || user?.sub || user?.id;
     return this.retirosService.processWithdrawal(+id, adminId, file);
   }
 
   @Put('admin/rechazar/:id')
-  async rejectWithdrawal(
-    @CurrentUser() user: any,
-    @Param('id') id: string
-  ) {
+  async rejectWithdrawal(@CurrentUser() user: any, @Param('id') id: string) {
     const adminId = user?.userId || user?.sub || user?.id;
     return this.retirosService.rejectWithdrawal(+id, adminId);
   }

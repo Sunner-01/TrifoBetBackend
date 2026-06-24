@@ -1,5 +1,11 @@
 // src/admin/guards/admin.guard.ts
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { createClient } from '@supabase/supabase-js';
@@ -53,7 +59,9 @@ export class AdminGuard implements CanActivate {
     }
 
     if (usuario.rol_id !== 1) {
-      throw new ForbiddenException('Acceso denegado: se requiere rol de administrador');
+      throw new ForbiddenException(
+        'Acceso denegado: se requiere rol de administrador',
+      );
     }
 
     request.user = payload;

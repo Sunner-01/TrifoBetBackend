@@ -29,11 +29,13 @@ import { ReportesModule } from './reportes/reportes.module';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     // Rate limiting global: máximo 60 peticiones por minuto por IP
-    ThrottlerModule.forRoot([{
-      name: 'general',
-      ttl: 60000,   // 60 segundos
-      limit: 60,    // 60 peticiones por IP por minuto
-    }]),
+    ThrottlerModule.forRoot([
+      {
+        name: 'general',
+        ttl: 60000, // 60 segundos
+        limit: 60, // 60 peticiones por IP por minuto
+      },
+    ]),
     AuthModule,
     PaisModule,
     PerfilModule,
@@ -64,4 +66,4 @@ import { ReportesModule } from './reportes/reportes.module';
     },
   ],
 })
-export class AppModule { }
+export class AppModule {}

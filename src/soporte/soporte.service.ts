@@ -64,11 +64,23 @@ export class SoporteService {
     return data;
   }
 
-  async saveMessage(ticketId: number, userId: number, remitenteTipo: string, contenido: string, imagenUrl: string | null = null) {
+  async saveMessage(
+    ticketId: number,
+    userId: number,
+    remitenteTipo: string,
+    contenido: string,
+    imagenUrl: string | null = null,
+  ) {
     const { data, error } = await this.supabase
       .from('ticket_soporte_mensaje')
       .insert([
-        { ticket_id: ticketId, usuario_id: userId, remitente_tipo: remitenteTipo, contenido, imagen_url: imagenUrl }
+        {
+          ticket_id: ticketId,
+          usuario_id: userId,
+          remitente_tipo: remitenteTipo,
+          contenido,
+          imagen_url: imagenUrl,
+        },
       ])
       .select()
       .single();
@@ -84,7 +96,7 @@ export class SoporteService {
       .eq('id', ticketId)
       .select()
       .single();
-    
+
     if (error) throw error;
     return data;
   }

@@ -1,4 +1,5 @@
 // src/recargas/recargas.controller.ts
+import { SkipThrottle } from '@nestjs/throttler';
 import {
   Controller,
   Post,
@@ -29,7 +30,10 @@ export class RecargasController {
   /** POST /recargas/solicitud — Crear solicitud de recarga */
   @Post('solicitud')
   @UseGuards(AuthGuard('jwt'))
-  async crearSolicitud(@CurrentUser() user: any, @Body() dto: CrearSolicitudDto) {
+  async crearSolicitud(
+    @CurrentUser() user: any,
+    @Body() dto: CrearSolicitudDto,
+  ) {
     return this.recargasService.crearSolicitud(user.userId, dto);
   }
 
@@ -42,10 +46,15 @@ export class RecargasController {
     @Param('id', ParseIntPipe) id: number,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    if (!file) throw new BadRequestException('Debes adjuntar una imagen del comprobante.');
+    if (!file)
+      throw new BadRequestException(
+        'Debes adjuntar una imagen del comprobante.',
+      );
     const allowed = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
     if (!allowed.includes(file.mimetype))
-      throw new BadRequestException('Solo se permiten imágenes (JPEG, PNG, WEBP).');
+      throw new BadRequestException(
+        'Solo se permiten imágenes (JPEG, PNG, WEBP).',
+      );
     if (file.size > 5 * 1024 * 1024)
       throw new BadRequestException('El comprobante no debe superar los 5MB.');
 
@@ -63,6 +72,7 @@ export class RecargasController {
 
   /** POST /recargas/yape-notificacion — Recibir notificación de Yape desde la app Flutter */
   @Post('yape-notificacion')
+  @SkipThrottle()
   async recibirNotificacionYape(
     @Body() dto: YapeNotificacionDto,
     @Headers('x-api-key') apiKey: string,
@@ -100,7 +110,9 @@ export class RecargasController {
   @Get('admin/notificaciones')
   @UseGuards(AuthGuard('jwt'))
   async ultimasNotificaciones(@Query('limit') limit?: string) {
-    return this.recargasService.obtenerUltimasNotificaciones(limit ? parseInt(limit) : 10);
+    return this.recargasService.obtenerUltimasNotificaciones(
+      limit ? parseInt(limit) : 10,
+    );
   }
 
   /** POST /recargas/admin/:id/aprobar — Aprobar manualmente */
@@ -122,7 +134,8 @@ export class RecargasController {
     @Param('id', ParseIntPipe) id: number,
     @Body('notas') notas: string,
   ) {
-    if (!notas?.trim()) throw new BadRequestException('Debes indicar el motivo del rechazo.');
+    if (!notas?.trim())
+      throw new BadRequestException('Debes indicar el motivo del rechazo.');
     return this.recargasService.rechazarManual(id, user.userId, notas);
   }
 }

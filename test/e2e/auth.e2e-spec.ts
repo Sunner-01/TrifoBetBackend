@@ -77,7 +77,7 @@ describe('AuthModule (e2e)', () => {
     const resLogin = await request(app.getHttpServer())
       .post('/auth/login')
       .send({ nombreUsuario: 'e2eUser', contrasena: 'password' });
-    
+
     expect(resLogin.status).toBe(200);
     validToken = resLogin.body.access_token;
     expect(validToken).toBeDefined();

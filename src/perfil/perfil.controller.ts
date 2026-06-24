@@ -19,12 +19,13 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 @Controller('perfil')
 @UseGuards(AuthGuard('jwt'))
 export class PerfilController {
-  constructor(private readonly perfilService: PerfilService) { }
+  constructor(private readonly perfilService: PerfilService) {}
 
   @Get('me')
   getProfile(@CurrentUser() user: any) {
     const userId = user?.userId || user?.sub || user?.id;
-    if (!userId) throw new BadRequestException('Usuario no identificado en el token');
+    if (!userId)
+      throw new BadRequestException('Usuario no identificado en el token');
     return this.perfilService.getProfile(userId);
   }
 
@@ -46,7 +47,10 @@ export class PerfilController {
       },
     }),
   )
-  updatePhoto(@CurrentUser() user: any, @UploadedFile() file: Express.Multer.File) {
+  updatePhoto(
+    @CurrentUser() user: any,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
     if (!file) throw new BadRequestException('Falta la foto');
     const userId = user?.userId || user?.sub || user?.id;
     return this.perfilService.updateProfilePhoto(userId, file);

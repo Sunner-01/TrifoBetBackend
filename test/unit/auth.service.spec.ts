@@ -86,7 +86,9 @@ describe('AuthService — Pruebas Unitarias', () => {
     // El primer .single() devuelve un usuario existente
     mockSupabase.single.mockResolvedValue({ data: { id: 99 }, error: null });
 
-    await expect(service.register(registerDto)).rejects.toThrow(BadRequestException);
+    await expect(service.register(registerDto)).rejects.toThrow(
+      BadRequestException,
+    );
     await expect(service.register(registerDto)).rejects.toThrow(
       'El nombre de usuario o email ya está en uso',
     );

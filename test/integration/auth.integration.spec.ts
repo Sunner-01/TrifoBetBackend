@@ -92,7 +92,10 @@ describe('Auth — Pruebas de Integración', () => {
 
     expect(response.status).toBe(201);
     expect(response.body).toHaveProperty('token');
-    expect(response.body).toHaveProperty('message', 'Usuario registrado exitosamente');
+    expect(response.body).toHaveProperty(
+      'message',
+      'Usuario registrado exitosamente',
+    );
   });
 
   // ── CASO 2: POST /auth/register — campos requeridos faltantes ────────────
@@ -118,7 +121,10 @@ describe('Auth — Pruebas de Integración', () => {
     expect(response.status).toBe(200);
     expect(response.body).toHaveProperty('access_token');
     expect(response.body).toHaveProperty('usuario');
-    expect(response.body.usuario).toHaveProperty('nombre_usuario', mockUser.nombre_usuario);
+    expect(response.body.usuario).toHaveProperty(
+      'nombre_usuario',
+      mockUser.nombre_usuario,
+    );
   });
 
   // ── CASO 4: POST /auth/login — credenciales inválidas ─────────────────────
@@ -139,7 +145,10 @@ describe('Auth — Pruebas de Integración', () => {
     // El JWT guard valida el token y llama a la estrategia que busca el usuario
     mockSupabase.single.mockResolvedValue({ data: mockUser, error: null });
 
-    const token = jwtService.sign({ sub: mockUser.id, username: mockUser.nombre_usuario });
+    const token = jwtService.sign({
+      sub: mockUser.id,
+      username: mockUser.nombre_usuario,
+    });
 
     const response = await request(app.getHttpServer())
       .get('/auth/me')

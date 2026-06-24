@@ -19,7 +19,9 @@ import { ConfigService } from '@nestjs/config';
   },
   namespace: '/soporte',
 })
-export class SoporteGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class SoporteGateway
+  implements OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer()
   server: Server;
 
@@ -33,14 +35,17 @@ export class SoporteGateway implements OnGatewayConnection, OnGatewayDisconnect 
 
   async handleConnection(client: Socket) {
     try {
-      const token = client.handshake.auth.token?.split(' ')[1] || client.handshake.headers.authorization?.split(' ')[1];
+      const token =
+        client.handshake.auth.token?.split(' ')[1] ||
+        client.handshake.headers.authorization?.split(' ')[1];
       if (!token) throw new Error('No token provided');
 
       const payload = this.jwtService.verify(token, {
         secret: this.configService.get<string>('JWT_SECRET'),
       });
 
-      const userId = payload.sub || payload.userId || payload.id_usuario || payload.id;
+      const userId =
+        payload.sub || payload.userId || payload.id_usuario || payload.id;
       client.data.user = { userId };
       this.logger.log(`Client connected: ${client.id} (User: ${userId})`);
     } catch (error) {
@@ -54,7 +59,10 @@ export class SoporteGateway implements OnGatewayConnection, OnGatewayDisconnect 
   }
 
   @SubscribeMessage('joinTicket')
-  handleJoinTicket(@MessageBody() data: { ticketId: number }, @ConnectedSocket() client: Socket) {
+  handleJoinTicket(
+    @MessageBody() data: { ticketId: number },
+    @ConnectedSocket() client: Socket,
+  ) {
     const room = `ticket_${data.ticketId}`;
     client.join(room);
     this.logger.log(`Client ${client.id} joined room ${room}`);
@@ -62,7 +70,10 @@ export class SoporteGateway implements OnGatewayConnection, OnGatewayDisconnect 
   }
 
   @SubscribeMessage('leaveTicket')
-  handleLeaveTicket(@MessageBody() data: { ticketId: number }, @ConnectedSocket() client: Socket) {
+  handleLeaveTicket(
+    @MessageBody() data: { ticketId: number },
+    @ConnectedSocket() client: Socket,
+  ) {
     const room = `ticket_${data.ticketId}`;
     client.leave(room);
     this.logger.log(`Client ${client.id} left room ${room}`);
@@ -70,7 +81,13 @@ export class SoporteGateway implements OnGatewayConnection, OnGatewayDisconnect 
 
   @SubscribeMessage('sendMessage')
   async handleSendMessage(
-    @MessageBody() data: { ticketId: number; contenido: string; imagenUrl?: string, remitenteTipo?: string },
+    @MessageBody()
+    data: {
+      ticketId: number;
+      contenido: string;
+      imagenUrl?: string;
+      remitenteTipo?: string;
+    },
     @ConnectedSocket() client: Socket,
   ) {
     const user = client.data.user;
@@ -87,7 +104,7 @@ export class SoporteGateway implements OnGatewayConnection, OnGatewayDisconnect 
 
       const room = `ticket_${data.ticketId}`;
       this.server.to(room).emit('newMessage', savedMessage);
-      
+
       return { status: 'success' };
     } catch (error) {
       this.logger.error(`Error sending message: ${error.message}`);

@@ -22,11 +22,17 @@ jest.mock('bcrypt', () => ({
 }));
 
 // Helper: espera un evento del socket con timeout
-function waitForEvent(socket: Socket, event: string, timeoutMs = 4000): Promise<any> {
+function waitForEvent(
+  socket: Socket,
+  event: string,
+  timeoutMs = 4000,
+): Promise<any> {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
       socket.off(event, handler);
-      reject(new Error(`Timeout esperando evento '${event}' tras ${timeoutMs}ms`));
+      reject(
+        new Error(`Timeout esperando evento '${event}' tras ${timeoutMs}ms`),
+      );
     }, timeoutMs);
 
     const handler = (data: any) => {
@@ -64,7 +70,10 @@ describe('BlackjackGateway (e2e)', () => {
     // Mocks para handleConnection: getBalance + nombre_usuario
     mockSupabase.single
       .mockResolvedValueOnce({ data: { saldo: 1000 }, error: null })
-      .mockResolvedValueOnce({ data: { nombre_usuario: 'wsUser' }, error: null });
+      .mockResolvedValueOnce({
+        data: { nombre_usuario: 'wsUser' },
+        error: null,
+      });
 
     socket = io(`${url}`, {
       transports: ['websocket'],
@@ -74,8 +83,13 @@ describe('BlackjackGateway (e2e)', () => {
 
     await new Promise<void>((resolve, reject) => {
       socket.on('connect', () => resolve());
-      socket.on('connect_error', (err) => reject(new Error(`WS connect error: ${err.message}`)));
-      setTimeout(() => reject(new Error('Timeout al conectar WebSocket')), 8000);
+      socket.on('connect_error', (err) =>
+        reject(new Error(`WS connect error: ${err.message}`)),
+      );
+      setTimeout(
+        () => reject(new Error('Timeout al conectar WebSocket')),
+        8000,
+      );
     });
   }, 20000);
 
@@ -90,7 +104,10 @@ describe('BlackjackGateway (e2e)', () => {
   it('Debe conectarse y recibir gameState al emitir joinGame', async () => {
     mockSupabase.single
       .mockResolvedValueOnce({ data: { saldo: 1000 }, error: null })
-      .mockResolvedValueOnce({ data: { nombre_usuario: 'wsUser' }, error: null });
+      .mockResolvedValueOnce({
+        data: { nombre_usuario: 'wsUser' },
+        error: null,
+      });
 
     socket.emit('joinGame');
     const state = await waitForEvent(socket, 'gameState');
@@ -120,7 +137,11 @@ describe('BlackjackGateway (e2e)', () => {
       }, 9000);
 
       const handler = (data: any) => {
-        if (data.playerHands && data.playerHands[0] && data.playerHands[0].length > 0) {
+        if (
+          data.playerHands &&
+          data.playerHands[0] &&
+          data.playerHands[0].length > 0
+        ) {
           clearTimeout(timer);
           socket.off('gameUpdate', handler);
           resolve(data);
@@ -134,7 +155,10 @@ describe('BlackjackGateway (e2e)', () => {
 
   // ── CASO 19: resetGame ────────────────────────────────────────────────────
   it('Debe reiniciar el juego y recibir gameState', async () => {
-    mockSupabase.single.mockResolvedValueOnce({ data: { saldo: 1000 }, error: null });
+    mockSupabase.single.mockResolvedValueOnce({
+      data: { saldo: 1000 },
+      error: null,
+    });
 
     socket.emit('resetGame');
     const state = await waitForEvent(socket, 'gameState');

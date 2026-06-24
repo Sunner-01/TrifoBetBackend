@@ -1,5 +1,11 @@
 // src/auth/dto/register.dto.ts
-import { IsEmail, IsNotEmpty, IsOptional, IsString, Length } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Length,
+} from 'class-validator';
 
 export class RegisterDto {
   @IsNotEmpty({ message: 'El nombre es obligatorio' })

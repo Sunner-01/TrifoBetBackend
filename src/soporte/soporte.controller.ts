@@ -1,4 +1,16 @@
-import { Controller, Get, Post, Put, Body, Param, UseGuards, Req, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Body,
+  Param,
+  UseGuards,
+  Req,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
+} from '@nestjs/common';
 import { SoporteService } from './soporte.service';
 import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -10,8 +22,15 @@ export class SoporteController {
 
   @UseGuards(AuthGuard('jwt'))
   @Post('ticket')
-  async createTicket(@Req() req, @Body() body: { asunto: string; categoria: string }) {
-    return this.soporteService.createTicket(req.user.userId, body.asunto, body.categoria);
+  async createTicket(
+    @Req() req,
+    @Body() body: { asunto: string; categoria: string },
+  ) {
+    return this.soporteService.createTicket(
+      req.user.userId,
+      body.asunto,
+      body.categoria,
+    );
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -34,7 +53,10 @@ export class SoporteController {
 
   @UseGuards(AuthGuard('jwt'))
   @Put('admin/ticket/:id')
-  async updateTicketStatus(@Param('id') id: string, @Body() body: { estado: string }) {
+  async updateTicketStatus(
+    @Param('id') id: string,
+    @Body() body: { estado: string },
+  ) {
     return this.soporteService.updateTicketStatus(parseInt(id), body.estado);
   }
 
@@ -45,14 +67,17 @@ export class SoporteController {
     if (!file) throw new BadRequestException('No file provided');
 
     return new Promise((resolve, reject) => {
-      cloudinary.uploader.upload_stream(
-        { folder: 'soporte_chat' },
-        (error, result) => {
-          if (error) return reject(new BadRequestException('Error uploading to Cloudinary'));
-          if (!result) return reject(new BadRequestException('No result from Cloudinary'));
+      cloudinary.uploader
+        .upload_stream({ folder: 'soporte_chat' }, (error, result) => {
+          if (error)
+            return reject(
+              new BadRequestException('Error uploading to Cloudinary'),
+            );
+          if (!result)
+            return reject(new BadRequestException('No result from Cloudinary'));
           resolve({ url: result.secure_url });
-        }
-      ).end(file.buffer);
+        })
+        .end(file.buffer);
     });
   }
 }

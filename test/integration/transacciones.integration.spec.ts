@@ -58,7 +58,10 @@ describe('Transacciones — Pruebas de Integración', () => {
     await app.init();
 
     jwtService = moduleRef.get<JwtService>(JwtService);
-    authToken = jwtService.sign({ sub: mockUser.id, username: mockUser.nombre_usuario });
+    authToken = jwtService.sign({
+      sub: mockUser.id,
+      username: mockUser.nombre_usuario,
+    });
   });
 
   afterAll(async () => {
@@ -133,8 +136,20 @@ describe('Transacciones — Pruebas de Integración', () => {
   // ── CASO 9: GET /transacciones/historial — lista paginada ────────────────
   it('GET /transacciones/historial debe retornar estructura paginada', async () => {
     const mockTransacciones = [
-      { id: 1, tipo: 'deposito', monto: 100, estado: 'aprobado', fecha_creacion: new Date().toISOString() },
-      { id: 2, tipo: 'retiro', monto: 50, estado: 'aprobado', fecha_creacion: new Date().toISOString() },
+      {
+        id: 1,
+        tipo: 'deposito',
+        monto: 100,
+        estado: 'aprobado',
+        fecha_creacion: new Date().toISOString(),
+      },
+      {
+        id: 2,
+        tipo: 'retiro',
+        monto: 50,
+        estado: 'aprobado',
+        fecha_creacion: new Date().toISOString(),
+      },
     ];
 
     mockSupabase._setThenResult(mockTransacciones, null, 2);
@@ -152,7 +167,12 @@ describe('Transacciones — Pruebas de Integración', () => {
   // ── CASO 10: GET /transacciones/metodos-pago — lista de métodos ──────────
   it('GET /transacciones/metodos-pago debe retornar array de métodos habilitados', async () => {
     const mockMetodos = [
-      { id: 1, nombre: 'Transferencia Bancaria', tipo: 'transferencia', habilitado: true },
+      {
+        id: 1,
+        nombre: 'Transferencia Bancaria',
+        tipo: 'transferencia',
+        habilitado: true,
+      },
       { id: 2, nombre: 'QR Simple', tipo: 'qr', habilitado: true },
     ];
 

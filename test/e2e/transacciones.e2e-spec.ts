@@ -16,7 +16,7 @@ import { createMockSupabaseClient } from '../helpers/supabase.mock';
 jest.mock('@supabase/supabase-js');
 jest.mock('bcrypt', () => ({
   compare: jest.fn().mockResolvedValue(true),
-  hash: jest.fn().mockResolvedValue('$hashed$')
+  hash: jest.fn().mockResolvedValue('$hashed$'),
 }));
 
 describe('TransaccionesModule (e2e)', () => {
@@ -37,7 +37,10 @@ describe('TransaccionesModule (e2e)', () => {
     await app.init();
 
     // Login for token
-    mockSupabase.single.mockResolvedValue({ data: { id: 1, verificado: true, saldo: 500 }, error: null });
+    mockSupabase.single.mockResolvedValue({
+      data: { id: 1, verificado: true, saldo: 500 },
+      error: null,
+    });
     const loginRes = await request(app.getHttpServer())
       .post('/auth/login')
       .send({ nombreUsuario: 'test', contrasena: 'test' });
@@ -68,12 +71,20 @@ describe('TransaccionesModule (e2e)', () => {
 
   // ── CASO 7: Retiro sin verificación ──────────────────────────────────────
   it('/transacciones/retiro (POST) sin verificar', async () => {
-    mockSupabase.single.mockResolvedValueOnce({ data: { verificado: false, saldo: 500 }, error: null });
+    mockSupabase.single.mockResolvedValueOnce({
+      data: { verificado: false, saldo: 500 },
+      error: null,
+    });
 
     const res = await request(app.getHttpServer())
       .post('/transacciones/retiro')
       .set('Authorization', `Bearer ${token}`)
-      .send({ monto: 50, entidadFinancieraId: 1, metodoPagoId: 1, datosPago: {} });
+      .send({
+        monto: 50,
+        entidadFinancieraId: 1,
+        metodoPagoId: 1,
+        datosPago: {},
+      });
 
     expect(res.status).toBe(403);
   });
@@ -90,12 +101,20 @@ describe('TransaccionesModule (e2e)', () => {
 
   // ── CASO 9: Retiro saldo insuficiente ────────────────────────────────────
   it('/transacciones/retiro (POST) saldo insuficiente', async () => {
-    mockSupabase.single.mockResolvedValueOnce({ data: { verificado: true, saldo: 10 }, error: null }); // 10 < 50
+    mockSupabase.single.mockResolvedValueOnce({
+      data: { verificado: true, saldo: 10 },
+      error: null,
+    }); // 10 < 50
 
     const res = await request(app.getHttpServer())
       .post('/transacciones/retiro')
       .set('Authorization', `Bearer ${token}`)
-      .send({ monto: 50, entidadFinancieraId: 1, metodoPagoId: 1, datosPago: {} });
+      .send({
+        monto: 50,
+        entidadFinancieraId: 1,
+        metodoPagoId: 1,
+        datosPago: {},
+      });
 
     expect(res.status).toBe(400);
     expect(res.body.message).toMatch(/insuficiente/i);

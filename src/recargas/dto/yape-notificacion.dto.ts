@@ -9,4 +9,16 @@ export class YapeNotificacionDto {
   @IsOptional()
   @IsString()
   fechaHora?: string; // ISO string si la app puede capturarla
+
+  @IsOptional()
+  @IsString()
+  title?: string; // Título original de la notificación
+
+  @IsOptional()
+  @IsString()
+  content?: string; // Contenido original de la notificación
+
+  @IsOptional()
+  @IsString()
+  packageName?: string; // Nombre del paquete de la app que generó la notificación
 }

@@ -17,7 +17,7 @@ import { TipoApuesta } from '../../src/apuestas-deportivas/dto/crear-apuesta.dto
 jest.mock('@supabase/supabase-js');
 jest.mock('bcrypt', () => ({
   compare: jest.fn().mockResolvedValue(true),
-  hash: jest.fn().mockResolvedValue('$hashed$')
+  hash: jest.fn().mockResolvedValue('$hashed$'),
 }));
 
 describe('ApuestasModule (e2e)', () => {
@@ -37,7 +37,10 @@ describe('ApuestasModule (e2e)', () => {
     app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
     await app.init();
 
-    mockSupabase.single.mockResolvedValue({ data: { id: 1, verificado: true, saldo: 500 }, error: null });
+    mockSupabase.single.mockResolvedValue({
+      data: { id: 1, verificado: true, saldo: 500 },
+      error: null,
+    });
     const loginRes = await request(app.getHttpServer())
       .post('/auth/login')
       .send({ nombreUsuario: 'test', contrasena: 'test' });
@@ -50,7 +53,12 @@ describe('ApuestasModule (e2e)', () => {
 
   afterEach(() => jest.clearAllMocks());
 
-  const seleccionBase = { eventoId: 1, mercado: '1X2', seleccion: '1', cuota: 1.5 };
+  const seleccionBase = {
+    eventoId: 1,
+    mercado: '1X2',
+    seleccion: '1',
+    cuota: 1.5,
+  };
 
   // ── CASO 11: Apuesta Simple ──────────────────────────────────────────────
   it('/apuestas-deportivas (POST) simple éxito', async () => {
@@ -65,7 +73,11 @@ describe('ApuestasModule (e2e)', () => {
     const res = await request(app.getHttpServer())
       .post('/apuestas-deportivas/crear')
       .set('Authorization', `Bearer ${token}`)
-      .send({ tipo: TipoApuesta.SIMPLE, monto: 100, selecciones: [seleccionBase] });
+      .send({
+        tipo: TipoApuesta.SIMPLE,
+        monto: 100,
+        selecciones: [seleccionBase],
+      });
 
     expect(res.status).toBe(201);
   });
@@ -75,8 +87,14 @@ describe('ApuestasModule (e2e)', () => {
     mockSupabase._setThenResult([{ id: 1 }, { id: 2 }], null);
     mockSupabase.single
       .mockResolvedValueOnce({ data: { saldo: 500 }, error: null })
-      .mockResolvedValueOnce({ data: { id: 2, tipo: 'combinada' }, error: null })
-      .mockResolvedValueOnce({ data: { id: 2, tipo: 'combinada' }, error: null });
+      .mockResolvedValueOnce({
+        data: { id: 2, tipo: 'combinada' },
+        error: null,
+      })
+      .mockResolvedValueOnce({
+        data: { id: 2, tipo: 'combinada' },
+        error: null,
+      });
 
     const res = await request(app.getHttpServer())
       .post('/apuestas-deportivas/crear')
@@ -84,7 +102,10 @@ describe('ApuestasModule (e2e)', () => {
       .send({
         tipo: TipoApuesta.COMBINADA,
         monto: 50,
-        selecciones: [seleccionBase, { ...seleccionBase, eventoId: 2, cuota: 2.0 }],
+        selecciones: [
+          seleccionBase,
+          { ...seleccionBase, eventoId: 2, cuota: 2.0 },
+        ],
       });
 
     expect(res.status).toBe(201);
@@ -104,7 +125,7 @@ describe('ApuestasModule (e2e)', () => {
   it('/apuestas-deportivas/estadisticas/resumen (GET) retorna estadísticas', async () => {
     mockSupabase._setThenResult(
       [{ estado: 'ganada', monto: '100', ganancia_potencial: '200' }],
-      null
+      null,
     );
 
     const res = await request(app.getHttpServer())
