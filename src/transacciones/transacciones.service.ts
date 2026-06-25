@@ -24,7 +24,13 @@ export class TransaccionesService {
       .order('fecha_creacion', { ascending: false })
       .range(offset, offset + limit - 1);
 
-    if (tipo) query = query.eq('tipo', tipo);
+    if (tipo) {
+      if (tipo.includes(',')) {
+        query = query.in('tipo', tipo.split(','));
+      } else {
+        query = query.eq('tipo', tipo);
+      }
+    }
     if (estado) query = query.eq('estado', estado);
 
     const { data, error, count } = await query;
@@ -72,7 +78,13 @@ export class TransaccionesService {
       .order('fecha_creacion', { ascending: false })
       .range(offset, offset + limit - 1);
 
-    if (tipo && tipo !== 'todos') query = query.eq('tipo', tipo);
+    if (tipo && tipo !== 'todos') {
+      if (tipo.includes(',')) {
+        query = query.in('tipo', tipo.split(','));
+      } else {
+        query = query.eq('tipo', tipo);
+      }
+    }
     if (estado && estado !== 'todos') query = query.eq('estado', estado);
 
     if (searchTerm) {
