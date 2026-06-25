@@ -1,11 +1,13 @@
 // src/auth/auth.controller.ts
 import { Controller, Post, Body, Get, UseGuards, Request, HttpCode } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 
 @Controller('auth')
+@Throttle({ default: { limit: 5, ttl: 60000 } }) // Solo 5 peticiones por minuto para auth
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 

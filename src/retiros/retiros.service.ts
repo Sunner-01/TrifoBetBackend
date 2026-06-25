@@ -80,7 +80,23 @@ export class RetirosService {
     userId: number,
     dto: { cuenta_retiro_id: number; monto: number },
   ) {
-    if (dto.monto <= 0) throw new BadRequestException('Monto inválido');
+    if (!dto.monto || isNaN(dto.monto)) throw new BadRequestException('Monto inválido');
+    if (dto.monto < 10 || dto.monto > 15000) {
+      throw new BadRequestException('El monto de retiro debe estar entre Bs. 10 y Bs. 15,000');
+    }
+
+    // Verificar que no tenga retiros pendientes
+    const { data: pending } = await this.supabase
+      .from('transaccion')
+      .select('id')
+      .eq('usuario_id', userId)
+      .eq('tipo', 'retiro')
+      .eq('estado', 'pendiente')
+      .limit(1);
+
+    if (pending && pending.length > 0) {
+      throw new BadRequestException('Ya tienes un retiro pendiente. Espera a que sea procesado antes de solicitar otro.');
+    }
 
     // Verificar cuenta aprobada
     const { data: cuenta, error: errCuenta } = await this.supabase
@@ -96,13 +112,22 @@ export class RetirosService {
       );
     }
 
-    // Verificar saldo
+    // Verificar saldo y estado de verificación
     const { data: user } = await this.supabase
       .from('usuario')
-      .select('saldo')
+      .select('saldo, verificado')
       .eq('id', userId)
       .single();
-    if (!user || Number(user.saldo) < dto.monto) {
+      
+    if (!user) {
+      throw new BadRequestException('Usuario no encontrado');
+    }
+
+    if (!user.verificado) {
+      throw new BadRequestException('Debes verificar tu identidad enviando tus documentos antes de poder retirar fondos.');
+    }
+
+    if (Number(user.saldo) < dto.monto) {
       throw new BadRequestException(
         'Saldo insuficiente para realizar el retiro.',
       );

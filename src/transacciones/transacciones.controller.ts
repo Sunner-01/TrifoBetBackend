@@ -40,6 +40,7 @@ export class TransaccionesController {
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
   ) {
+    console.log('[TransaccionesController] obtenerHistorial - user:', user);
     return this.transaccionesService.obtenerHistorial(
       user.userId,
       tipo,
@@ -59,6 +60,7 @@ export class TransaccionesController {
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
   ) {
+    console.log('[TransaccionesController] obtenerHistorialAdmin - query:', { tipo, estado, searchTerm });
     return this.transaccionesService.obtenerHistorialAdmin(
       tipo,
       estado,

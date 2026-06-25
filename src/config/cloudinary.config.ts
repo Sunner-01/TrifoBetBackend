@@ -9,7 +9,7 @@ export const CloudinaryProvider = {
       api_key: configService.get<string>('CLOUDINARY_API_KEY'),
       api_secret: configService.get<string>('CLOUDINARY_API_SECRET'),
     });
-    // Retornamos la instancia de cloudinary (no el resultado de config)
+    // Retornamos la instancia de cloudinary
     return cloudinary;
   },
   inject: [ConfigService],

@@ -1,5 +1,5 @@
 // src/perfil/perfil.service.ts
-import { Injectable, NotFoundException, Logger } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient } from '@supabase/supabase-js';
 import { v2 as cloudinary } from 'cloudinary';
@@ -78,6 +78,71 @@ export class PerfilService {
       );
     }
 
+    // 3. Estadísticas reales de la cuenta
+    // 3.1. Obtener todas las transacciones exitosas (depósitos y retiros)
+    const { data: transacciones } = await this.supabase
+      .from('transaccion')
+      .select('tipo, monto, fecha_creacion, estado')
+      .eq('usuario_id', userId)
+      .in('estado', ['aprobado', 'completado']);
+
+    let totalDepositos = 0;
+    let totalRetiros = 0;
+
+    if (transacciones) {
+      transacciones.forEach((t) => {
+        if (t.tipo === 'deposito' || t.tipo === 'recarga' || t.tipo === 'abono') {
+          totalDepositos += Number(t.monto);
+        } else if (t.tipo === 'retiro') {
+          totalRetiros += Number(t.monto);
+        }
+      });
+    }
+
+    // 3.2. Obtener todas las apuestas realizadas
+    const { data: apuestas } = await this.supabase
+      .from('apuesta')
+      .select('monto, estado, fecha_creacion')
+      .eq('usuario_id', userId);
+
+    const totalApuestas = apuestas?.length || 0;
+    let ganadas = 0;
+    if (apuestas) {
+      apuestas.forEach(a => {
+        if (a.estado === 'ganada') ganadas++;
+      });
+    }
+    const winRate = totalApuestas > 0 ? Math.round((ganadas / totalApuestas) * 100) : 0;
+
+    // 3.3. Actividad reciente (Uniendo transacciones y apuestas recientes)
+    const allActivity: any[] = [];
+    if (transacciones) {
+      transacciones.forEach(t => {
+        allActivity.push({
+          type: 'transaction',
+          description: t.tipo.charAt(0).toUpperCase() + t.tipo.slice(1),
+          time: t.fecha_creacion,
+          amount: `Bs ${Number(t.monto).toFixed(2)}`,
+          status: t.estado,
+        });
+      });
+    }
+    if (apuestas) {
+      apuestas.forEach(a => {
+        allActivity.push({
+          type: 'bet',
+          description: 'Apuesta Deportiva',
+          time: a.fecha_creacion,
+          amount: `Bs ${Number(a.monto).toFixed(2)}`,
+          status: a.estado,
+        });
+      });
+    }
+
+    // Ordenar por tiempo descendente y tomar las 5 más recientes
+    allActivity.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+    const recentActivity = allActivity.slice(0, 5);
+
     return {
       id: data.id,
       nombre: data.nombre || null,
@@ -94,22 +159,58 @@ export class PerfilService {
       foto_perfil_url: data.foto_perfil_url || null,
       verificado: data.verificado,
       created_at: data.created_at,
+      stats: {
+        memberSince: data.created_at ? new Date(data.created_at).toLocaleDateString('es-BO') : "N/A",
+        totalDeposits: totalDepositos.toFixed(2),
+        totalWithdrawals: totalRetiros.toFixed(2),
+        totalBets: totalApuestas,
+        winRate: winRate,
+        favoriteGame: "Apuestas Deportivas",
+      },
+      actividad_reciente: recentActivity,
     };
   }
 
   async updateProfile(userId: number, dto: any) {
+    // Validar usuario primero para verificar si está verificado
+    const currentUser = await this.getProfile(userId);
+
     // Convertir campos de camelCase a snake_case para Supabase
     const updateData: any = {};
 
     if (dto.nombre !== undefined) updateData.nombre = dto.nombre;
     if (dto.apellido1 !== undefined) updateData.apellido1 = dto.apellido1;
     if (dto.apellido2 !== undefined) updateData.apellido2 = dto.apellido2;
-    if (dto.ci !== undefined) updateData.ci = dto.ci;
-    if (dto.fechaNacimiento !== undefined)
-      updateData.fecha_nacimiento = dto.fechaNacimiento;
     if (dto.correo !== undefined) updateData.correo = dto.correo;
     if (dto.telefono !== undefined) updateData.telefono = dto.telefono;
     if (dto.paisCodigo !== undefined) updateData.pais_codigo = dto.paisCodigo;
+
+    // Validación de fecha de nacimiento y CI si está presente
+    if (dto.ci !== undefined || dto.fechaNacimiento !== undefined) {
+      if (currentUser.verificado) {
+        throw new BadRequestException('No puedes modificar tu Documento de Identidad (CI) o Fecha de Nacimiento porque tu cuenta ya ha sido verificada.');
+      }
+      
+      if (dto.ci !== undefined) {
+        updateData.ci = dto.ci;
+      }
+      
+      if (dto.fechaNacimiento !== undefined) {
+        const dateStr = dto.fechaNacimiento;
+        const bornDate = new Date(dateStr);
+        const today = new Date();
+        const minDate = new Date(today.getFullYear() - 100, today.getMonth(), today.getDate());
+        const maxDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+
+        if (bornDate > maxDate) {
+          throw new BadRequestException('Debes tener al menos 18 años de edad.');
+        }
+        if (bornDate < minDate) {
+          throw new BadRequestException('Por favor ingresa una fecha de nacimiento válida.');
+        }
+        updateData.fecha_nacimiento = dto.fechaNacimiento;
+      }
+    }
 
     const { error } = await this.supabase
       .from('usuario')

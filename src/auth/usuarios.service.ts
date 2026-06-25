@@ -15,14 +15,18 @@ export class UsuariosService {
     );
   }
 
-  async checkUserExists(nombreUsuario: string, correo: string): Promise<boolean> {
+  async checkUserExists(nombreUsuario: string, correo: string, ci?: string, telefono?: string): Promise<boolean> {
+    let orQuery = `nombre_usuario.eq.${nombreUsuario},correo.eq.${correo}`;
+    if (ci) orQuery += `,ci.eq.${ci}`;
+    if (telefono) orQuery += `,telefono.eq.${telefono}`;
+
     const { data } = await this.supabase
       .from('usuario')
       .select('id')
-      .or(`nombre_usuario.eq.${nombreUsuario},correo.eq.${correo}`)
-      .single();
+      .or(orQuery)
+      .limit(1);
 
-    return !!data;
+    return data !== null && data.length > 0;
   }
 
   async createUser(registerDto: RegisterDto, hashedPassword: string) {

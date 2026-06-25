@@ -21,10 +21,12 @@ export class AuthService {
     const userExists = await this.usuariosService.checkUserExists(
       registerDto.nombreUsuario,
       registerDto.correo,
+      registerDto.ci,
+      registerDto.telefono
     );
 
     if (userExists) {
-      throw new BadRequestException('El nombre de usuario o email ya está en uso');
+      throw new BadRequestException('El nombre de usuario, email, carnet de identidad o teléfono ya están registrados en otra cuenta');
     }
 
     const hashedPassword = await this.passwordService.hashPassword(registerDto.contrasena);

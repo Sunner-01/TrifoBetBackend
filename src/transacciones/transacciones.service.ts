@@ -16,6 +16,7 @@ export class TransaccionesService {
 
   //  OBTENER HISTORIAL 
   async obtenerHistorial(userId: number, tipo?: string, estado?: string, limit = 20, offset = 0) {
+    this.logger.log(`[TransaccionesService] obtenerHistorial userId=${userId}, tipo=${tipo}, estado=${estado}`);
     let query = this.supabase
       .from('transaccion')
       .select(`*, entidad_financiera:entidad_financiera_id(nombre, tipo, codigo), metodo_pago:metodo_pago_id(nombre, tipo)`)

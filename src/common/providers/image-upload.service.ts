@@ -2,11 +2,7 @@
 import { Injectable } from '@nestjs/common';
 import { v2 as cloudinary } from 'cloudinary';
 
-/**
- * Servicio genérico de subida de imágenes (DIP).
- * Los servicios de negocio (Recargas, Retiros) dependerán de esta interfaz abstracta,
- * de modo que si mañana se cambia Cloudinary por AWS S3, los servicios de negocio no cambian.
- */
+
 @Injectable()
 export class ImageUploadService {
   async uploadImage(fileBuffer: Buffer, folderPath: string): Promise<string> {
